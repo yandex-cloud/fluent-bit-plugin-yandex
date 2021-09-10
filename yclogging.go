@@ -14,18 +14,18 @@ import (
 
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
-	println("yc-logging: registering")
+	fmt.Println("yc-logging: registering")
 	return output.FLBPluginRegister(def, "yc-logging", "Yandex Cloud Logging output")
 }
 
 //export FLBPluginInit
 func FLBPluginInit(plugin unsafe.Pointer) int {
-	println("yc-logging: init")
+	fmt.Println("yc-logging: init")
 
 	impl := new(pluginImpl)
 	code, err := impl.init(plugin)
 	if err != nil {
-		println(fmt.Sprintf("yc-logging: init err: %s", err.Error()))
+		fmt.Printf("yc-logging: init err: %s\n", err.Error())
 		return code
 	}
 

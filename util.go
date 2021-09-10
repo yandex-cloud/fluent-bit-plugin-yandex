@@ -44,7 +44,7 @@ func toTime(raw interface{}) time.Time {
 	case uint64:
 		return time.Unix(int64(typed), 0)
 	default:
-		println("time provided invalid, defaulting to now.")
+		fmt.Println("time provided invalid, defaulting to now.")
 		return time.Now()
 	}
 }
@@ -82,4 +82,12 @@ func normalize(raw interface{}) interface{} {
 	default:
 		return raw
 	}
+}
+
+// truncate requires maxLen to be >= 3 (for '...')
+func truncate(str string, maxLen int) string {
+	if len(str) <= maxLen {
+		return str
+	}
+	return str[:maxLen-3] + "..."
 }

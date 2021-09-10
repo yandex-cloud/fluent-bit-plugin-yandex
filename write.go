@@ -28,8 +28,8 @@ func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEn
 			return err
 		}
 		var toRetry []*logging.IncomingLogEntry
-		for idx, entryToRetry := range failed.GetErrors() {
-			switch code := codes.Code(entryToRetry.GetCode()); code {
+		for idx, failure := range failed.GetErrors() {
+			switch code := codes.Code(failure.GetCode()); code {
 			case codes.ResourceExhausted,
 				codes.FailedPrecondition,
 				codes.Unavailable,
@@ -39,7 +39,11 @@ func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEn
 				toRetry = append(toRetry, batch[idx])
 			default:
 				// bad message, just print
-				fmt.Printf("yc-logging: bad message %q: %q\n", batch[idx].String(), entryToRetry.String())
+				fmt.Printf(
+					"yc-logging: bad message %q: %q\n",
+					truncate(batch[idx].GetMessage(), 512),
+					failure.String(),
+				)
 			}
 		}
 		// add back to retry later

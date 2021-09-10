@@ -68,7 +68,7 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 		}
 		entryDefaults.Level = level
 		haveDefaults = true
-		println(fmt.Sprintf("yc-logging: will use %s as default level", level.String()))
+		fmt.Printf("yc-logging: will use %s as default level\n", level.String())
 	}
 
 	defaultPayload := getConfigKey(plugin, keyDefaultPayload)
@@ -80,7 +80,7 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 		entryDefaults.JsonPayload = payload
 		haveDefaults = true
 		data, _ := payload.MarshalJSON()
-		println(fmt.Sprintf("yc-logging: will default payload:\n%s", string(data)))
+		fmt.Printf("yc-logging: will default payload:\n%s\n", string(data))
 	}
 
 	if haveDefaults {
