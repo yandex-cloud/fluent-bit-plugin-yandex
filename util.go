@@ -6,8 +6,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/fluent/fluent-bit-go/output"
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	"google.golang.org/protobuf/types/known/structpb"
+
+	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
 func levelFromString(level string) (logging.LogLevel_Level, error) {

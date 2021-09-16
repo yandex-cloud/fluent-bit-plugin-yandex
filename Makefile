@@ -12,12 +12,15 @@ push-images:
 
 images: mod.vendor
 	docker build \
+		--build-arg plugin_version=$(PLUGIN_VERSION) \
 		--build-arg fluent_bit_version=$(FLUENT_BIT_1_6) \
 		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_6) .
 	docker build \
+		--build-arg plugin_version=$(PLUGIN_VERSION) \
 		--build-arg fluent_bit_version=$(FLUENT_BIT_1_7) \
 		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_7) .
 	docker build \
+		--build-arg plugin_version=$(PLUGIN_VERSION) \
 		--build-arg fluent_bit_version=$(FLUENT_BIT_1_8) \
 		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_8) .
 

@@ -4,9 +4,10 @@ import (
 	"strings"
 	"time"
 
-	loggingpb "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	loggingpb "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
 type parseKeys struct {

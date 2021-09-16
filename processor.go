@@ -9,6 +9,7 @@ import (
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
+
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
 	ingest "github.com/yandex-cloud/go-sdk/gen/logingestion"

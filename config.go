@@ -7,6 +7,8 @@ import (
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
+	"google.golang.org/grpc"
+
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
 	ingest "github.com/yandex-cloud/go-sdk/gen/logingestion"
@@ -103,6 +105,11 @@ func getParseKeys(plugin unsafe.Pointer) *parseKeys {
 	}
 }
 
+var (
+	PluginVersion    string
+	FluentBitVersion string
+)
+
 func getIngestionClient(plugin unsafe.Pointer) (*ingest.LogIngestionServiceClient, error) {
 	const (
 		keyAuthorization = "authorization"
@@ -125,10 +132,13 @@ func getIngestionClient(plugin unsafe.Pointer) (*ingest.LogIngestionServiceClien
 		endpoint = defaultEndpoint
 	}
 
-	sdk, err := ycsdk.Build(context.Background(), ycsdk.Config{
-		Credentials: credentials,
-		Endpoint:    endpoint,
-	})
+	sdk, err := ycsdk.Build(context.Background(),
+		ycsdk.Config{
+			Credentials: credentials,
+			Endpoint:    endpoint,
+		},
+		grpc.WithUserAgent(`fluent-bit-plugin-yandex/`+PluginVersion+`; fluent-bit/`+FluentBitVersion),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating sdk: %s", err.Error())
 	}

@@ -7,9 +7,10 @@ import (
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
 //export FLBPluginRegister

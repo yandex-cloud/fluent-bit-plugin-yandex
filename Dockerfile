@@ -1,10 +1,16 @@
+ARG plugin_version=dev
 ARG fluent_bit_version=1.8.6
 ARG golang_version=1.16.7
 
 FROM golang:${golang_version} as builder
 WORKDIR /build
 COPY . .
-RUN CGO_ENABLED=1 go build -buildmode=c-shared -o /yc-logging.so .
+RUN CGO_ENABLED=1 go build \
+    -buildmode=c-shared \
+    -o /yc-logging.so \
+    -ldflags "-X main.PluginVersion=${plugin_version}" \
+    -ldflags "-X main.FluentBitVersion=${fluent_bit_version}" \
+    .
 
 FROM fluent/fluent-bit:${fluent_bit_version} as fluent-bit
 COPY --from=builder /yc-logging.so /fluent-bit/bin/

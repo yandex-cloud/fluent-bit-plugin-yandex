@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	"google.golang.org/grpc/codes"
+
+	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
 func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEntry) error {
