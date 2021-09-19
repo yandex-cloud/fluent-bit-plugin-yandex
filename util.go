@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -12,10 +13,10 @@ import (
 )
 
 func levelFromString(level string) (logging.LogLevel_Level, error) {
-	if v, ok := logging.LogLevel_Level_value[level]; ok {
+	if v, ok := logging.LogLevel_Level_value[strings.ToUpper(level)]; ok {
 		return logging.LogLevel_Level(v), nil
 	}
-	return 0, fmt.Errorf("bad level: %q", level)
+	return logging.LogLevel_LEVEL_UNSPECIFIED, fmt.Errorf("bad level: %q", level)
 }
 
 func payloadFromString(payload string) (*structpb.Struct, error) {

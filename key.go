@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	"time"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -35,7 +34,7 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 			message = toString(v)
 		case pk.level:
 			levelName := toString(v)
-			level = loggingpb.LogLevel_Level(loggingpb.LogLevel_Level_value[strings.ToUpper(levelName)])
+			level, _ = levelFromString(levelName)
 		default:
 			value, err := structpb.NewValue(normalize(v))
 			if err != nil {
