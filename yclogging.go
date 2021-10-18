@@ -52,10 +52,6 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	}
 
 	err := plugin.write(context.Background(), entries)
-	if err == nil {
-		fmt.Printf("yc-logging: written %d messages\n", len(entries))
-		return output.FLB_OK
-	}
 
 	code := status.Code(err)
 	switch code {
