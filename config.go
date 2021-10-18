@@ -132,10 +132,16 @@ func getIngestionClient(plugin unsafe.Pointer) (*ingest.LogIngestionServiceClien
 		endpoint = defaultEndpoint
 	}
 
+	tlsConfig, err := makeTLSConfig(plugin)
+	if err != nil {
+		return nil, fmt.Errorf("error creating tls config: %s", err.Error())
+	}
+
 	sdk, err := ycsdk.Build(context.Background(),
 		ycsdk.Config{
 			Credentials: credentials,
 			Endpoint:    endpoint,
+			TLSConfig:   tlsConfig,
 		},
 		grpc.WithUserAgent(`fluent-bit-plugin-yandex/`+PluginVersion+`; fluent-bit/`+FluentBitVersion),
 	)

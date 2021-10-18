@@ -1,8 +1,12 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -84,4 +88,38 @@ func makeCredentials(authorization string) (ycsdk.Credentials, error) {
 		}
 		return ycsdk.ServiceAccountKey(key)
 	}
+}
+
+func makeTLSConfig(plugin unsafe.Pointer) (*tls.Config, error) {
+	CAFileName := output.FLBPluginConfigKey(plugin, "ca_file")
+	fmt.Println("yc-logging: make TLS config")
+
+	if CAFileName != "" {
+		fmt.Println("yc-logging: create tls config")
+		caCertPool, err := x509.SystemCertPool()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load system certs pool %w", err)
+		}
+
+		r, err := ioutil.ReadFile(CAFileName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get ca_file = %s details: %w", CAFileName, err)
+		}
+		block, _ := pem.Decode(r)
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse ca_file = %s details: %w", CAFileName, err)
+		}
+		caCertPool.AddCert(cert)
+
+		config := &tls.Config{
+			RootCAs: caCertPool,
+		}
+
+		fmt.Println("yc-logging: tls config successful created")
+
+		return config, nil
+	}
+
+	return &tls.Config{}, nil
 }
