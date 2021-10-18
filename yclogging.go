@@ -1,10 +1,11 @@
 package main
 
 import (
-	"C"
 	"context"
 	"fmt"
 	"unsafe"
+
+	"C"
 
 	"github.com/fluent/fluent-bit-go/output"
 	"google.golang.org/grpc/codes"
@@ -52,6 +53,9 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	}
 
 	err := plugin.write(context.Background(), entries)
+	if err == nil {
+		return output.FLB_OK
+	}
 
 	code := status.Code(err)
 	switch code {
