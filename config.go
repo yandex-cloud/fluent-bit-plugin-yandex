@@ -1,17 +1,12 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
-	"google.golang.org/grpc"
-
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
-	ycsdk "github.com/yandex-cloud/go-sdk"
-	ingest "github.com/yandex-cloud/go-sdk/gen/logingestion"
 )
 
 func getConfigKey(plugin unsafe.Pointer, key string) string {
@@ -103,50 +98,4 @@ func getParseKeys(plugin unsafe.Pointer) *parseKeys {
 		message:    getConfigKey(plugin, keyMessageKey),
 		messageTag: getConfigKey(plugin, keyMessageTagKey),
 	}
-}
-
-var (
-	PluginVersion    string
-	FluentBitVersion string
-)
-
-func getIngestionClient(plugin unsafe.Pointer) (*ingest.LogIngestionServiceClient, error) {
-	const (
-		keyAuthorization = "authorization"
-		keyEndpoint      = "endpoint"
-		defaultEndpoint  = "api.cloud.yandex.net:443"
-	)
-
-	authorization := getConfigKey(plugin, keyAuthorization)
-	if authorization == "" {
-		return nil, fmt.Errorf("authorization missing")
-	}
-
-	credentials, err := makeCredentials(authorization)
-	if err != nil {
-		return nil, err
-	}
-
-	endpoint := getConfigKey(plugin, keyEndpoint)
-	if endpoint == "" {
-		endpoint = defaultEndpoint
-	}
-
-	tlsConfig, err := makeTLSConfig(plugin)
-	if err != nil {
-		return nil, fmt.Errorf("error creating tls config: %s", err.Error())
-	}
-
-	sdk, err := ycsdk.Build(context.Background(),
-		ycsdk.Config{
-			Credentials: credentials,
-			Endpoint:    endpoint,
-			TLSConfig:   tlsConfig,
-		},
-		grpc.WithUserAgent(`fluent-bit-plugin-yandex/`+PluginVersion+`; fluent-bit/`+FluentBitVersion),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("error creating sdk: %s", err.Error())
-	}
-	return sdk.LogIngestion().LogIngestion(), nil
 }

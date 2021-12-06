@@ -16,7 +16,6 @@ import (
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
-	ingest "github.com/yandex-cloud/go-sdk/gen/logingestion"
 	"github.com/yandex-cloud/go-sdk/iamkey"
 )
 
@@ -28,7 +27,7 @@ type pluginImpl struct {
 
 	keys *parseKeys
 
-	client *ingest.LogIngestionServiceClient
+	client *client
 }
 
 func (p *pluginImpl) init(plugin unsafe.Pointer) (int, error) {
