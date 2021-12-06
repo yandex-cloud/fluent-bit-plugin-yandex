@@ -61,7 +61,7 @@ func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag
 	return p.keys.entry(ts, record, tag)
 }
 
-func makeCredentials(authorization string) (credentials ycsdk.Credentials, err error) {
+func makeCredentials(authorization string) (ycsdk.Credentials, error) {
 	const (
 		instanceSaAuth   = "instance-service-account"
 		tokenAuth        = "iam-token"
