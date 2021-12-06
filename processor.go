@@ -65,14 +65,13 @@ func makeCredentials(authorization string) (credentials ycsdk.Credentials, err e
 	const (
 		instanceSaAuth   = "instance-service-account"
 		tokenAuth        = "iam-token"
-		tokenKey         = "YC_TOKEN"
 		iamKeyAuthPrefix = "iam-key-file:"
 	)
 	switch auth := strings.TrimSpace(authorization); auth {
 	case instanceSaAuth:
 		return ycsdk.InstanceServiceAccount(), nil
 	case tokenAuth:
-		token, ok := os.LookupEnv(tokenKey)
+		token, ok := os.LookupEnv("YC_TOKEN")
 		if !ok {
 			return nil, errors.New(`environment variable "YC_TOKEN" not set, required for authorization=iam-token`)
 		}
