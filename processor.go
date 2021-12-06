@@ -4,12 +4,17 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"strings"
 	"time"
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
+	ycsdk "github.com/yandex-cloud/go-sdk"
+	"github.com/yandex-cloud/go-sdk/iamkey"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
@@ -54,6 +59,36 @@ func (p *pluginImpl) init(plugin unsafe.Pointer) (int, error) {
 
 func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag string) *logging.IncomingLogEntry {
 	return p.keys.entry(ts, record, tag)
+}
+
+func makeCredentials(authorization string) (credentials ycsdk.Credentials, err error) {
+	const (
+		instanceSaAuth   = "instance-service-account	"
+		tokenAuth        = "iam-token"
+		tokenKey         = "YC_TOKEN"
+		iamKeyAuthPrefix = "iam-key-file:"
+	)
+	switch auth := strings.TrimSpace(authorization); auth {
+	case instanceSaAuth:
+		return ycsdk.InstanceServiceAccount(), nil
+	case tokenAuth:
+		token, ok := os.LookupEnv(tokenKey)
+		if !ok {
+			return nil, errors.New(`environment variable "YC_TOKEN" not set, required for authorization=iam-token`)
+		}
+		return ycsdk.NewIAMTokenCredentials(token), nil
+	default:
+		if !strings.HasPrefix(auth, iamKeyAuthPrefix) {
+			return nil, fmt.Errorf("unsupported authorization parameter %s", auth)
+		}
+		fileName := strings.TrimSpace(auth[len(iamKeyAuthPrefix):])
+		key, err := iamkey.ReadFromJSONFile(fileName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read service account key file %s", fileName)
+		}
+		credentials, err = ycsdk.ServiceAccountKey(key)
+		return credentials, err
+	}
 }
 
 func makeTLSConfig(plugin unsafe.Pointer) (*tls.Config, error) {

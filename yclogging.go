@@ -60,9 +60,13 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	code := status.Code(err)
 	switch code {
 	case codes.PermissionDenied:
-		// kick credentials reinit
+		// kick client reinit
 		fmt.Printf("yc-logging: reinit on write error %s: %q\n", code.String(), err.Error())
-		plugin.client.reinit()
+		if initErr := plugin.client.init(); initErr != nil {
+			fmt.Printf("yc-logging: reinit failed: %q\n", initErr.Error())
+		} else {
+			fmt.Printf("yc-logging: reinit succeded\n")
+		}
 		return output.FLB_RETRY
 	case codes.ResourceExhausted, codes.FailedPrecondition, codes.Unavailable,
 		codes.Canceled, codes.DeadlineExceeded:
