@@ -48,6 +48,7 @@ func makeCredentials(authorization string) (credentials ycsdk.Credentials, err e
 	const (
 		instanceSaAuth   = "instance-service-account"
 		tokenAuth        = "iam-token"
+		tokenKey         = "YC_TOKEN"
 		iamKeyAuthPrefix = "iam-key-file:"
 	)
 	switch auth := strings.TrimSpace(authorization); auth {
@@ -58,11 +59,21 @@ func makeCredentials(authorization string) (credentials ycsdk.Credentials, err e
 			refreshFunc: ycsdk.InstanceServiceAccount,
 		}, nil
 	case tokenAuth:
-		token, ok := os.LookupEnv("YC_TOKEN")
+		token, ok := os.LookupEnv(tokenKey)
 		if !ok {
 			return nil, errors.New(`environment variable "YC_TOKEN" not set, required for authorization=iam-token`)
 		}
-		return ycsdk.NewIAMTokenCredentials(token), nil
+		return &refreshableCredentials{
+			initTime:    time.Now(),
+			credentials: ycsdk.NewIAMTokenCredentials(token),
+			refreshFunc: func() ycsdk.NonExchangeableCredentials {
+				tok, got := os.LookupEnv(tokenKey)
+				if !got {
+					fmt.Println(`environment variable "YC_TOKEN" not set, required for authorization=iam-token`)
+				}
+				return ycsdk.NewIAMTokenCredentials(tok)
+			},
+		}, nil
 	default:
 		if !strings.HasPrefix(auth, iamKeyAuthPrefix) {
 			return nil, fmt.Errorf("unsupported authorization parameter %s", auth)
