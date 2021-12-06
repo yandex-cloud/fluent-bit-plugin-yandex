@@ -13,10 +13,10 @@ import (
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
-	ycsdk "github.com/yandex-cloud/go-sdk"
-	"github.com/yandex-cloud/go-sdk/iamkey"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
+	ycsdk "github.com/yandex-cloud/go-sdk"
+	"github.com/yandex-cloud/go-sdk/iamkey"
 )
 
 type pluginImpl struct {
