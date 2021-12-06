@@ -85,8 +85,7 @@ func makeCredentials(authorization string) (credentials ycsdk.Credentials, err e
 		if err != nil {
 			return nil, fmt.Errorf("failed to read service account key file %s", fileName)
 		}
-		credentials, err = ycsdk.ServiceAccountKey(key)
-		return credentials, err
+		return ycsdk.ServiceAccountKey(key)
 	}
 }
 
