@@ -3,7 +3,7 @@ DOCKER_IMAGE ?= cr.yandex/yc/fluent-bit-plugin-yandex
 PLUGIN_VERSION ?= dev
 FLUENT_BIT_1_6?=1.6.10
 FLUENT_BIT_1_7?=1.7.9
-FLUENT_BIT_1_8?=1.8.6
+FLUENT_BIT_1_8?=1.8.10
 
 push-images:
 	docker push $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_6)
