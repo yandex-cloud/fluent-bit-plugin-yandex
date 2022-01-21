@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
+	ycsdk "github.com/yandex-cloud/go-sdk"
 )
 
 func getConfigKey(plugin unsafe.Pointer, key string) string {
@@ -17,6 +19,7 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	const (
 		keyFolderID = "folder_id"
 		keyGroupID  = "group_id"
+		urlFolderID = "http://" + ycsdk.InstanceMetadataAddr + "/computeMetadata/v1/yandex/folder-id"
 	)
 
 	if groupID := getConfigKey(plugin, keyGroupID); len(groupID) > 0 {
@@ -26,6 +29,19 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	if folderID := getConfigKey(plugin, keyFolderID); len(folderID) > 0 {
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
 	}
+
+	client := http.Client{}
+	req, err := http.NewRequest("GET", urlFolderID, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Metadata-Flavor", "Google")
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	// TODO parse response to get folder-id
+	_ = resp
 
 	return nil, fmt.Errorf("either %q or %q must be specified", keyGroupID, keyFolderID)
 }
