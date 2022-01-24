@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"unsafe"
@@ -33,17 +35,32 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", urlFolderID, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not make request: %s", err)
 	}
 	req.Header.Set("Metadata-Flavor", "Google")
+
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get instance metadata: %s", err)
 	}
-	// TODO parse response to get folder-id
-	_ = resp
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("response status is not OK: %s", resp.Status)
+	}
 
-	return nil, fmt.Errorf("either %q or %q must be specified", keyGroupID, keyFolderID)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("response body read failed: %s", err)
+	}
+
+	var folderIDResp struct {
+		FolderID string `json:"folder-id"`
+	}
+	err = json.Unmarshal(body, &folderIDResp)
+	if err != nil {
+		return nil, fmt.Errorf("response body unmarshal failed: %s", err)
+	}
+
+	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderIDResp.FolderID}}, nil
 }
 
 func getResource(plugin unsafe.Pointer) *logging.LogEntryResource {
