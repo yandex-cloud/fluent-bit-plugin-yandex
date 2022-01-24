@@ -10,7 +10,7 @@ for
 | Key | Description | 
 |:---|:---|
 | `group_id`        | (_optional_) [Log group](https://cloud.yandex.ru/docs/logging/concepts/log-group) ID. Has higher priority than `folder_id`. |
-| `folder_id`       | (_optional_) Folder ID. Has lower priority than `group_id`. |
+| `folder_id`       | (_optional_) Folder ID. Has lower priority than `group_id`. Can be auto-detected if `group_id` and `folder_id` are not set. |
 | `resource_type`   | (_optional_) Resource type of log entries | 
 | `resource_id`     | (_optional_) Resource id of log entries | 
 | `message_tag_key` | Key of the field to be assigned to the message tag. By default, will be skipped | 
