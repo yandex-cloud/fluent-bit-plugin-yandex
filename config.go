@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -35,32 +34,25 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", urlFolderID, nil)
 	if err != nil {
-		return nil, fmt.Errorf("could not make request: %s", err)
+		return nil, fmt.Errorf("could not make request to autodetect folder ID: %s", err)
 	}
 	req.Header.Set("Metadata-Flavor", "Google")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("could not get instance metadata: %s", err)
+		return nil, fmt.Errorf("could not get instance metadata to autodetect folder ID: %s", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("response status is not OK: %s", resp.Status)
+		return nil, fmt.Errorf("request to autodetect folder ID returned status other than OK: %s", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("response body read failed: %s", err)
+		return nil, fmt.Errorf("response body returned by request to autodetect folder ID read failed: %s", err)
 	}
+	folderId := string(body)
 
-	var folderIDResp struct {
-		FolderID string `json:"folder-id"`
-	}
-	err = json.Unmarshal(body, &folderIDResp)
-	if err != nil {
-		return nil, fmt.Errorf("response body unmarshal failed: %s", err)
-	}
-
-	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderIDResp.FolderID}}, nil
+	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
 func getResource(plugin unsafe.Pointer) *logging.LogEntryResource {
