@@ -32,15 +32,15 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	}
 
 	client := http.Client{}
-	req, err := http.NewRequest("GET", urlFolderID, nil)
+	req, err := http.NewRequest(http.MethodGet, urlFolderID, nil)
 	if err != nil {
-		return nil, fmt.Errorf("could not make request to autodetect folder ID: %s", err)
+		return nil, fmt.Errorf("could not make request to autodetect folder ID: %s", err.Error())
 	}
 	req.Header.Set("Metadata-Flavor", "Google")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("could not get instance metadata to autodetect folder ID: %s", err)
+		return nil, fmt.Errorf("could not get instance metadata to autodetect folder ID: %s", err.Error())
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("request to autodetect folder ID returned status other than OK: %s", resp.Status)
@@ -48,7 +48,7 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("response body returned by request to autodetect folder ID read failed: %s", err)
+		return nil, fmt.Errorf("response body returned by request to autodetect folder ID read failed: %s", err.Error())
 	}
 	folderId := string(body)
 
