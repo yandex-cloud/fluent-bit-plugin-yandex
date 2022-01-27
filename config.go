@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strings"
 	"unsafe"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/fluent/fluent-bit-go/output"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
-	ycsdk "github.com/yandex-cloud/go-sdk"
 )
 
 func getConfigKey(plugin unsafe.Pointer, key string) string {
@@ -18,9 +16,9 @@ func getConfigKey(plugin unsafe.Pointer, key string) string {
 
 func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	const (
-		keyFolderID = "folder_id"
-		keyGroupID  = "group_id"
-		urlFolderID = "http://" + ycsdk.InstanceMetadataAddr + "/computeMetadata/v1/yandex/folder-id"
+		keyFolderID       = "folder_id"
+		keyGroupID        = "group_id"
+		urlSuffixFolderID = "yandex/folder-id"
 	)
 
 	if groupID := getConfigKey(plugin, keyGroupID); len(groupID) > 0 {
@@ -31,26 +29,10 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
 	}
 
-	client := http.Client{}
-	req, err := http.NewRequest(http.MethodGet, urlFolderID, nil)
+	folderId, err := metadata.Get(urlSuffixFolderID)
 	if err != nil {
-		return nil, fmt.Errorf("could not make request to autodetect folder ID: %s", err.Error())
+		return nil, fmt.Errorf("could not autodetect folder ID: %s", err.Error())
 	}
-	req.Header.Set("Metadata-Flavor", "Google")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("could not get instance metadata to autodetect folder ID: %s", err.Error())
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("request to autodetect folder ID returned status other than OK: %s", resp.Status)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("response body returned by request to autodetect folder ID read failed: %s", err.Error())
-	}
-	folderId := string(body)
 
 	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
