@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"unsafe"
 
@@ -18,9 +19,10 @@ func getConfigKey(plugin unsafe.Pointer, key string) string {
 
 func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	const (
-		keyFolderID = "folder_id"
-		keyGroupID  = "group_id"
-		urlFolderID = "http://" + ycsdk.InstanceMetadataAddr + "/computeMetadata/v1/yandex/folder-id"
+		keyFolderID       = "folder_id"
+		keyGroupID        = "group_id"
+		keyMetadataUrlEnv = "YC_METADATA_URL"
+		urlSuffixFolderID = "/computeMetadata/v1/yandex/folder-id"
 	)
 
 	if groupID := getConfigKey(plugin, keyGroupID); len(groupID) > 0 {
@@ -29,6 +31,11 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 
 	if folderID := getConfigKey(plugin, keyFolderID); len(folderID) > 0 {
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
+	}
+
+	var urlFolderID = "http://" + ycsdk.InstanceMetadataAddr + urlSuffixFolderID
+	if metadataUrlEnv := os.Getenv(keyMetadataUrlEnv); len(metadataUrlEnv) > 0 {
+		urlFolderID = metadataUrlEnv + urlSuffixFolderID
 	}
 
 	client := http.Client{}
