@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
@@ -23,6 +25,7 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 		keyGroupID        = "group_id"
 		keyMetadataUrlEnv = "YC_METADATA_URL"
 		urlSuffixFolderID = "/computeMetadata/v1/yandex/folder-id"
+		requestTimeout    = 5 * time.Second
 	)
 
 	if groupID := getConfigKey(plugin, keyGroupID); len(groupID) > 0 {
@@ -46,7 +49,9 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	}
 	req.Header.Set("Metadata-Flavor", "Google")
 
-	resp, err := client.Do(req)
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	defer cancel()
+	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("could not get instance metadata to autodetect folder ID: %s", err.Error())
 	}

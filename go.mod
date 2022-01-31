@@ -3,7 +3,6 @@ module github.com/yandex-cloud/fluent-bit-plugin-yandex
 go 1.17
 
 require (
-	cloud.google.com/go v0.34.0
 	github.com/fluent/fluent-bit-go v0.0.0-20201210173045-3fd1e0486df2
 	github.com/yandex-cloud/go-genproto v0.0.0-20211202135052-789603780fb2
 	github.com/yandex-cloud/go-sdk v0.0.0-20211206101223-7c4e7926bf53
