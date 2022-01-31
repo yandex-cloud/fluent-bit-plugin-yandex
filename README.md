@@ -10,7 +10,7 @@ for
 | Key | Description | 
 |:---|:---|
 | `group_id`        | (_optional_) [Log group](https://cloud.yandex.ru/docs/logging/concepts/log-group) ID. Has higher priority than `folder_id`. |
-| `folder_id`       | (_optional_) Folder ID. Has lower priority than `group_id`. Can be auto-detected via [metadata service](https://cloud.yandex.com/en/docs/compute/concepts/vm-metadata) if `group_id` and `folder_id` are not set. Metadata url can be configured through environment variable `YC_METADATA_URL`. By default it's `http://169.254.169.254`.|
+| `folder_id`       | (_optional_) Folder ID. Has lower priority than `group_id`. Can be auto-detected via [metadata service](https://cloud.yandex.com/en/docs/compute/concepts/vm-metadata) if `group_id` and `folder_id` are not set. Metadata url can be configured through environment variable `YC_METADATA_URL`. By default it's `http://169.254.169.254`. |
 | `resource_type`   | (_optional_) Resource type of log entries | 
 | `resource_id`     | (_optional_) Resource id of log entries | 
 | `message_tag_key` | Key of the field to be assigned to the message tag. By default, will be skipped | 
