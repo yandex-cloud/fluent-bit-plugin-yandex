@@ -33,10 +33,11 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
 	}
 
-	var urlFolderID = "http://" + ycsdk.InstanceMetadataAddr + urlSuffixFolderID
-	if metadataUrlEnv := os.Getenv(keyMetadataUrlEnv); len(metadataUrlEnv) > 0 {
-		urlFolderID = metadataUrlEnv + urlSuffixFolderID
+	metadataEndpoint := os.Getenv(keyMetadataUrlEnv)
+	if len(metadataEndpoint) == 0 {
+		metadataEndpoint = "http://" + ycsdk.InstanceMetadataAddr
 	}
+	urlFolderID := metadataEndpoint + urlSuffixFolderID
 
 	client := http.Client{}
 	req, err := http.NewRequest(http.MethodGet, urlFolderID, nil)
