@@ -15,8 +15,9 @@ func getConfigKey(plugin unsafe.Pointer, key string) string {
 
 func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	const (
-		keyFolderID = "folder_id"
-		keyGroupID  = "group_id"
+		keyFolderID         = "folder_id"
+		keyGroupID          = "group_id"
+		metadataKeyFolderID = "yandex/folder-id"
 	)
 
 	if groupID := getConfigKey(plugin, keyGroupID); len(groupID) > 0 {
@@ -27,7 +28,12 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
 	}
 
-	return nil, fmt.Errorf("either %q or %q must be specified", keyGroupID, keyFolderID)
+	folderId, err := getMetadataValue(metadataKeyFolderID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
 func getResource(plugin unsafe.Pointer) *logging.LogEntryResource {
