@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -26,6 +27,30 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func parseMetadataTemplate(metadata *structpb.Value) {
+	switch value := metadata.AsInterface().(type) {
+	case string:
+		reg := regexp.MustCompile(`{.*}`)
+		parsed := reg.ReplaceAllFunc([]byte(value), func(t []byte) []byte {
+			str := string(t)
+			metadataValue, err := getMetadataValue(str[1 : len(str)-1])
+			if err != nil {
+				return t
+			}
+			return []byte(metadataValue)
+		})
+		*metadata = *structpb.NewStringValue(string(parsed))
+	case map[string]interface{}:
+		for _, v := range metadata.GetStructValue().GetFields() {
+			parseMetadataTemplate(v)
+		}
+	case []interface{}:
+		for _, v := range metadata.GetListValue().GetValues() {
+			parseMetadataTemplate(v)
+		}
+	}
 }
 
 func toString(raw interface{}) string {
