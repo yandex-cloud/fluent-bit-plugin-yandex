@@ -30,8 +30,12 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 }
 
 func parsePayload(payload *structpb.Struct) error {
+	metadataCache, err := getAllMetadata()
+	if err != nil {
+		return err
+	}
 	for _, v := range payload.GetFields() {
-		err := parseTemplate(v)
+		err = parseTemplate(v, metadataCache)
 		if err != nil {
 			return err
 		}
@@ -41,13 +45,13 @@ func parsePayload(payload *structpb.Struct) error {
 
 var reg = regexp.MustCompile(`{.*}`)
 
-func parseTemplate(payloadValue *structpb.Value) error {
+func parseTemplate(payloadValue *structpb.Value, metadata *structpb.Struct) error {
 	switch value := payloadValue.AsInterface().(type) {
 	case string:
 		var err error
 		parsed := reg.ReplaceAllStringFunc(value, func(t string) string {
 			var res string
-			res, err = replaceTemplate(t)
+			res, err = replaceTemplate(t, metadata)
 			return res
 		})
 		if err != nil {
@@ -56,14 +60,14 @@ func parseTemplate(payloadValue *structpb.Value) error {
 		*payloadValue = *structpb.NewStringValue(parsed)
 	case map[string]interface{}:
 		for _, v := range payloadValue.GetStructValue().GetFields() {
-			err := parseTemplate(v)
+			err := parseTemplate(v, metadata)
 			if err != nil {
 				return err
 			}
 		}
 	case []interface{}:
 		for _, v := range payloadValue.GetListValue().GetValues() {
-			err := parseTemplate(v)
+			err := parseTemplate(v, metadata)
 			if err != nil {
 				return err
 			}
@@ -72,7 +76,7 @@ func parseTemplate(payloadValue *structpb.Value) error {
 	return nil
 }
 
-func replaceTemplate(t string) (string, error) {
+func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
 	str := t[1 : len(t)-1]
 
 	fields := strings.Split(str, ":")
@@ -88,7 +92,7 @@ func replaceTemplate(t string) (string, error) {
 
 	switch source {
 	case "metadata":
-		metadataValue, err := getMetadataValue(key)
+		metadataValue, err := getCachedMetadataValue(metadata, key)
 		if err != nil {
 			return defaultValue, nil
 		}
