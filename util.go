@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/fluent/fluent-bit-go/output"
+	"go.uber.org/multierr"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
@@ -34,13 +35,14 @@ func parsePayload(payload *structpb.Struct) error {
 	if err != nil {
 		return err
 	}
+	var multierror error
 	for _, v := range payload.GetFields() {
 		err = parseTemplate(v, metadataCache)
 		if err != nil {
-			return err
+			multierror = multierr.Append(multierror, err)
 		}
 	}
-	return nil
+	return multierror
 }
 
 var reg = regexp.MustCompile(`{.*}`)
@@ -94,6 +96,7 @@ func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
 	case "metadata":
 		metadataValue, err := getCachedMetadataValue(metadata, key)
 		if err != nil {
+			fmt.Printf("yc-logging: using default value %s for template %s because of error: %s", defaultValue, t, err.Error())
 			return defaultValue, nil
 		}
 		return metadataValue, nil

@@ -6,6 +6,7 @@ require (
 	github.com/fluent/fluent-bit-go v0.0.0-20201210173045-3fd1e0486df2
 	github.com/yandex-cloud/go-genproto v0.0.0-20211202135052-789603780fb2
 	github.com/yandex-cloud/go-sdk v0.0.0-20211206101223-7c4e7926bf53
+	go.uber.org/multierr v1.7.0
 	google.golang.org/grpc v1.42.0
 	google.golang.org/protobuf v1.27.1
 )
@@ -17,6 +18,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/net v0.0.0-20211205041911-012df41ee64c // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	golang.org/x/text v0.3.7 // indirect
