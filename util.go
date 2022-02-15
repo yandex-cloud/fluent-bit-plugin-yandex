@@ -29,27 +29,72 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
-func parseMetadataTemplate(metadata *structpb.Value) {
-	switch value := metadata.AsInterface().(type) {
+func parsePayload(payload *structpb.Struct) error {
+	for _, v := range payload.GetFields() {
+		err := parseTemplate(v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+var reg = regexp.MustCompile(`{.*}`)
+
+func parseTemplate(payloadValue *structpb.Value) error {
+	switch value := payloadValue.AsInterface().(type) {
 	case string:
-		reg := regexp.MustCompile(`{.*}`)
-		parsed := reg.ReplaceAllFunc([]byte(value), func(t []byte) []byte {
-			str := string(t)
-			metadataValue, err := getMetadataValue(str[1 : len(str)-1])
-			if err != nil {
-				return t
-			}
-			return []byte(metadataValue)
+		var err error
+		parsed := reg.ReplaceAllStringFunc(value, func(t string) string {
+			var res string
+			res, err = replaceTemplate(t)
+			return res
 		})
-		*metadata = *structpb.NewStringValue(string(parsed))
+		if err != nil {
+			return err
+		}
+		*payloadValue = *structpb.NewStringValue(parsed)
 	case map[string]interface{}:
-		for _, v := range metadata.GetStructValue().GetFields() {
-			parseMetadataTemplate(v)
+		for _, v := range payloadValue.GetStructValue().GetFields() {
+			err := parseTemplate(v)
+			if err != nil {
+				return err
+			}
 		}
 	case []interface{}:
-		for _, v := range metadata.GetListValue().GetValues() {
-			parseMetadataTemplate(v)
+		for _, v := range payloadValue.GetListValue().GetValues() {
+			err := parseTemplate(v)
+			if err != nil {
+				return err
+			}
 		}
+	}
+	return nil
+}
+
+func replaceTemplate(t string) (string, error) {
+	str := t[1 : len(t)-1]
+
+	fields := strings.Split(str, ":")
+	if len(fields) < 2 {
+		return t, fmt.Errorf("configuration error: template %s must contain at least source and key diveded by \":\"", t)
+	}
+	source := fields[0]
+	key := fields[1]
+	defaultValue := ""
+	if len(fields) >= 3 {
+		defaultValue = fields[2]
+	}
+
+	switch source {
+	case "metadata":
+		metadataValue, err := getMetadataValue(key)
+		if err != nil {
+			return defaultValue, nil
+		}
+		return metadataValue, nil
+	default:
+		return t, nil
 	}
 }
 

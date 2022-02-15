@@ -56,9 +56,8 @@ func getResource(plugin unsafe.Pointer) *logging.LogEntryResource {
 
 func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 	const (
-		keyDefaultLevel    = "default_level"
-		keyDefaultPayload  = "default_payload"
-		keyMetadataPayload = "metadata"
+		keyDefaultLevel   = "default_level"
+		keyDefaultPayload = "default_payload"
 	)
 
 	entryDefaults := new(logging.LogEntryDefaults)
@@ -81,7 +80,10 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 		if err != nil {
 			return nil, err
 		}
-		parseMetadataTemplate(payload.GetFields()[keyMetadataPayload])
+		err = parsePayload(payload)
+		if err != nil {
+			return nil, err
+		}
 		entryDefaults.JsonPayload = payload
 		haveDefaults = true
 		data, _ := payload.MarshalJSON()
