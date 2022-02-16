@@ -48,6 +48,7 @@ func parsePayload(payload *structpb.Struct) error {
 var reg = regexp.MustCompile(`{.*}`)
 
 func parseTemplate(payloadValue *structpb.Value, metadata *structpb.Struct) error {
+	var multierror error
 	switch value := payloadValue.AsInterface().(type) {
 	case string:
 		var err error
@@ -64,18 +65,18 @@ func parseTemplate(payloadValue *structpb.Value, metadata *structpb.Struct) erro
 		for _, v := range payloadValue.GetStructValue().GetFields() {
 			err := parseTemplate(v, metadata)
 			if err != nil {
-				return err
+				multierror = multierr.Append(multierror, err)
 			}
 		}
 	case []interface{}:
 		for _, v := range payloadValue.GetListValue().GetValues() {
 			err := parseTemplate(v, metadata)
 			if err != nil {
-				return err
+				multierror = multierr.Append(multierror, err)
 			}
 		}
 	}
-	return nil
+	return multierror
 }
 
 func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
