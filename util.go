@@ -83,7 +83,7 @@ func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
 
 	fields := strings.Split(str, ":")
 	if len(fields) < 2 {
-		return t, fmt.Errorf("configuration error: template %s must contain at least source and key diveded by \":\"", t)
+		return t, fmt.Errorf("configuration error: template %q must contain at least source and key diveded by \":\"", t)
 	}
 	source := fields[0]
 	key := fields[1]
@@ -96,7 +96,7 @@ func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
 	case "metadata":
 		metadataValue, err := getCachedMetadataValue(metadata, key)
 		if err != nil {
-			fmt.Printf("yc-logging: using default value %s for template %s because of error: %s", defaultValue, t, err.Error())
+			fmt.Printf("yc-logging: using default value %q for template %q because of error: %s\n", defaultValue, t, err.Error())
 			return defaultValue, nil
 		}
 		return metadataValue, nil

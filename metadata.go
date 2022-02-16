@@ -106,12 +106,24 @@ func getCachedMetadataValue(metadata *structpb.Struct, key string) (string, erro
 		case *structpb.Value_ListValue:
 			index, err := strconv.Atoi(p)
 			if err != nil {
-				return "", fmt.Errorf("incorrect metadata key: %s", key)
+				return "", fmt.Errorf("incorrect metadata key: %q, expected number instead of %q", key, p)
 			}
 			cur = cur.GetListValue().GetValues()[index]
 		default:
-			return "", fmt.Errorf("incorrect metadata key: %s", key)
+			return "", fmt.Errorf("incorrect metadata key: %q", key)
 		}
 	}
-	return cur.String(), nil
+	if cur == nil {
+		return "", fmt.Errorf("incorrect metadata key: %q", key)
+	}
+
+	if _, ok := cur.GetKind().(*structpb.Value_StringValue); ok {
+		return cur.GetStringValue(), nil
+	}
+
+	content, err := cur.MarshalJSON()
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal JSON from value by key %q: %s", key, err.Error())
+	}
+	return string(content), nil
 }
