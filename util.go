@@ -102,7 +102,7 @@ func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
 		}
 		return metadataValue, nil
 	default:
-		return t, nil
+		return t, fmt.Errorf("configuration error: unknown source %q in template %q", source, t)
 	}
 }
 
