@@ -12,6 +12,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/structpb"
 
+	"github.com/startdusk/strnaming"
 	ycsdk "github.com/yandex-cloud/go-sdk"
 )
 
@@ -97,9 +98,14 @@ func getAllMetadata() (*structpb.Struct, error) {
 }
 
 func getCachedMetadataValue(metadata *structpb.Struct, key string) (string, error) {
+	toCamel := strnaming.NewCamel()
+	toCamel.WithDelimiter('-')
+
 	path := strings.Split(key, "/")
 	cur := structpb.NewStructValue(metadata)
 	for _, p := range path {
+		p = toCamel.Convert(p)
+
 		switch cur.GetKind().(type) {
 		case *structpb.Value_StructValue:
 			cur = cur.GetStructValue().GetFields()[p]
