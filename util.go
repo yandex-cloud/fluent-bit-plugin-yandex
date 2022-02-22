@@ -30,80 +30,40 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
-func parsePayload(payload *structpb.Struct) error {
+var reg = regexp.MustCompile(`{{[^{}]+}}`)
+
+func parsePayload(payload string) (string, error) {
 	metadataCache, err := getAllMetadata()
 	if err != nil {
-		return err
+		return "", err
 	}
 	var multierror error
-	for _, v := range payload.GetFields() {
-		err = parseTemplate(v, metadataCache)
+	parsed := reg.ReplaceAllStringFunc(payload, func(t string) string {
+		res, err := replaceTemplate(t, metadataCache)
 		if err != nil {
 			multierror = multierr.Append(multierror, err)
 		}
-	}
-	return multierror
-}
-
-var reg = regexp.MustCompile(`{.*}`)
-
-func parseTemplate(payloadValue *structpb.Value, metadata *structpb.Struct) error {
-	var multierror error
-	switch value := payloadValue.AsInterface().(type) {
-	case string:
-		var err error
-		parsed := reg.ReplaceAllStringFunc(value, func(t string) string {
-			var res string
-			res, err = replaceTemplate(t, metadata)
-			return res
-		})
-		if err != nil {
-			return err
-		}
-		*payloadValue = *structpb.NewStringValue(parsed)
-	case map[string]interface{}:
-		for _, v := range payloadValue.GetStructValue().GetFields() {
-			err := parseTemplate(v, metadata)
-			if err != nil {
-				multierror = multierr.Append(multierror, err)
-			}
-		}
-	case []interface{}:
-		for _, v := range payloadValue.GetListValue().GetValues() {
-			err := parseTemplate(v, metadata)
-			if err != nil {
-				multierror = multierr.Append(multierror, err)
-			}
-		}
-	}
-	return multierror
+		return res
+	})
+	return parsed, multierror
 }
 
 func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
-	str := t[1 : len(t)-1]
+	str := t[2 : len(t)-2]
 
 	fields := strings.Split(str, ":")
-	if len(fields) < 2 {
-		return t, fmt.Errorf("configuration error: template %q must contain at least source and key diveded by \":\"", t)
-	}
-	source := fields[0]
-	key := fields[1]
+	key := fields[0]
 	defaultValue := ""
-	if len(fields) >= 3 {
-		defaultValue = fields[2]
+	if len(fields) >= 2 {
+		defaultValue = fields[1]
 	}
 
-	switch source {
-	case "metadata":
-		metadataValue, err := getCachedMetadataValue(metadata, key)
-		if err != nil {
-			fmt.Printf("yc-logging: using default value %q for template %q because of error: %s\n", defaultValue, t, err.Error())
-			return defaultValue, nil
-		}
-		return metadataValue, nil
-	default:
-		return t, fmt.Errorf("configuration error: unknown source %q in template %q", source, t)
+	metadataValue, err := getCachedMetadataValue(metadata, key)
+	if err != nil {
+		fmt.Printf("yc-logging: using default value %q for template %q because of error: %s\n", defaultValue, t, err.Error())
+		return defaultValue, nil
 	}
+	return metadataValue, nil
 }
 
 func toString(raw interface{}) string {
