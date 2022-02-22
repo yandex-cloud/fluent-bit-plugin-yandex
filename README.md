@@ -17,7 +17,7 @@ for
 | `message_key`     | Key of the field, which will go to `message` attribute of LogEntry | 
 | `level_key`       | Key of the field, which contains log level, optional |
 | `default_level`   | (_optional_) Default level for messages, i.e., `INFO` |
-| `default_payload` | (_optional_) String with default JSON payload for entries (will be merged together with custom entry payload). You can define templated field as follows: `{source:key:default}` or `{source:key}`. All strings matched `{metadata:...}` will be replaced by metadata values found via [metadata service](#metadata). |
+| `default_payload` | (_optional_) String with default JSON payload for entries (will be merged together with custom entry payload). You can define templated value as follows: `{{key:default}}` or `{{key}}`. All strings matched this template will be replaced by metadata values found via [metadata service](#metadata). You also can use this template as a JSON value (without quotes), so that JSON struct or array will be included in default payload. |
 | `authorization`   | see [Authorization](#authorization) section below |
 
 ### Metadata
@@ -54,6 +54,6 @@ Example:
     message_key     text
     level_key       severity
     default_level   WARN
-    default_payload {"num":5, "str": "string", "bool": true, "host":"{metadata:instance/hostname}", "not-found":"{metadata:not/found:default}"}
+    default_payload {"num":5, "str": "string", "bool": true, "host":"{{instance/hostname}}", "not-found":"{{not/found:default}}", "struct": {{instance/disks/0}}, "array": {{instance/disks}} }
     authorization   instance-service-account
 ```
