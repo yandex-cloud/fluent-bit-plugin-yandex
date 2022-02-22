@@ -30,7 +30,7 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
-var reg = regexp.MustCompile(`{{[^{}]+}}`)
+var templateReg = regexp.MustCompile(`{{[^{}]+}}`)
 
 func parsePayload(payload string) (string, error) {
 	metadataCache, err := getAllMetadata()
@@ -38,7 +38,7 @@ func parsePayload(payload string) (string, error) {
 		return "", err
 	}
 	var multierror error
-	parsed := reg.ReplaceAllStringFunc(payload, func(t string) string {
+	parsed := templateReg.ReplaceAllStringFunc(payload, func(t string) string {
 		res, err := replaceTemplate(t, metadataCache)
 		if err != nil {
 			multierror = multierr.Append(multierror, err)
