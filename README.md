@@ -10,15 +10,21 @@ for
 | Key | Description | 
 |:---|:---|
 | `group_id`        | (_optional_) [Log group](https://cloud.yandex.ru/docs/logging/concepts/log-group) ID. Has higher priority than `folder_id`. |
-| `folder_id`       | (_optional_) Folder ID. Has lower priority than `group_id`. Can be auto-detected via [metadata service](https://cloud.yandex.com/en/docs/compute/concepts/vm-metadata) if `group_id` and `folder_id` are not set. Metadata url can be configured through environment variable `YC_METADATA_URL`. By default it's `http://169.254.169.254`. |
+| `folder_id`       | (_optional_) Folder ID. Has lower priority than `group_id`. Can be auto-detected via [metadata service](#metadata) if `group_id` and `folder_id` are not set. |
 | `resource_type`   | (_optional_) Resource type of log entries | 
 | `resource_id`     | (_optional_) Resource id of log entries | 
 | `message_tag_key` | Key of the field to be assigned to the message tag. By default, will be skipped | 
 | `message_key`     | Key of the field, which will go to `message` attribute of LogEntry | 
 | `level_key`       | Key of the field, which contains log level, optional |
 | `default_level`   | (_optional_) Default level for messages, i.e., `INFO` |
-| `default_payload` | (_optional_) String with default JSON payload for entries (will be merged together with custom entry payload) |
+| `default_payload` | (_optional_) String with default JSON payload for entries (will be merged together with custom entry payload). You can define templated value as follows: `{{key:default}}` or `{{key}}`. All strings matched this template will be replaced by metadata values found via [metadata service](#metadata). You also can use this template as a JSON value (without quotes), so that JSON struct or array will be included in default payload. |
 | `authorization`   | see [Authorization](#authorization) section below |
+
+### Metadata
+
+[Metadata service documentation](https://cloud.yandex.com/en/docs/compute/concepts/vm-metadata).
+
+Metadata url can be configured through environment variable `YC_METADATA_URL`. By default it's `http://169.254.169.254`.
 
 ### Authorization
 
@@ -48,6 +54,6 @@ Example:
     message_key     text
     level_key       severity
     default_level   WARN
-    default_payload {"num":5, "str": "string", "bool": true}
+    default_payload {"num":5, "str": "string", "bool": true, "host":"{{instance/hostname}}", "not-found":"{{not/found:default}}", "struct": {{instance/disks/0}}, "array": {{instance/disks}} }
     authorization   instance-service-account
 ```

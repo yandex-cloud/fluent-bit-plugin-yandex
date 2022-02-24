@@ -76,6 +76,11 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 
 	defaultPayload := getConfigKey(plugin, keyDefaultPayload)
 	if len(defaultPayload) > 0 {
+		var err error
+		defaultPayload, err = parsePayload(defaultPayload)
+		if err != nil {
+			return nil, err
+		}
 		payload, err := payloadFromString(defaultPayload)
 		if err != nil {
 			return nil, err
