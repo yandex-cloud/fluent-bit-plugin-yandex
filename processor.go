@@ -22,7 +22,9 @@ import (
 type pluginImpl struct {
 	destination *logging.Destination
 
-	resource *logging.LogEntryResource
+	resourceType *template
+	resourceID   *template
+
 	defaults *logging.LogEntryDefaults
 
 	keys *parseKeys
@@ -32,9 +34,10 @@ type pluginImpl struct {
 
 func (p *pluginImpl) init(plugin unsafe.Pointer) (int, error) {
 	*p = pluginImpl{
-		resource: getResource(plugin),
-		keys:     getParseKeys(plugin),
+		keys: getParseKeys(plugin),
 	}
+
+	p.resourceType, p.resourceID = getResourceTemplates(plugin)
 
 	destination, err := getDestination(plugin)
 	if err != nil {

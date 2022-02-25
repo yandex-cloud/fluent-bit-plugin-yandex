@@ -9,7 +9,7 @@ import (
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEntry) error {
+func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
 	const batchMaxLen = 100
 	for len(entries) > 0 {
 		var batch []*logging.IncomingLogEntry
@@ -20,7 +20,7 @@ func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEn
 		}
 		failed, err := p.client.Write(ctx, &logging.WriteRequest{
 			Destination: p.destination,
-			Resource:    p.resource,
+			Resource:    resource,
 			Entries:     batch,
 			Defaults:    p.defaults,
 		})

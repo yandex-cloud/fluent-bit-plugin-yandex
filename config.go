@@ -36,22 +36,20 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
-func getResource(plugin unsafe.Pointer) *logging.LogEntryResource {
+func getResourceTemplates(plugin unsafe.Pointer) (resourceType *template, resourceID *template) {
 	const (
 		keyResourceType = "resource_type"
 		keyResourceID   = "resource_id"
 	)
 
-	resourceType := getConfigKey(plugin, keyResourceType)
-	resourceID := getConfigKey(plugin, keyResourceID)
+	resourceTypeRaw := getConfigKey(plugin, keyResourceType)
+	resourceIDRaw := getConfigKey(plugin, keyResourceID)
 
-	if len(resourceType)+len(resourceID) > 0 {
-		return &logging.LogEntryResource{
-			Type: resourceType,
-			Id:   resourceID,
-		}
+	if len(resourceTypeRaw)+len(resourceIDRaw) > 0 {
+		return newTemplate(resourceTypeRaw), newTemplate(resourceIDRaw)
 	}
-	return nil
+
+	return
 }
 
 func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {

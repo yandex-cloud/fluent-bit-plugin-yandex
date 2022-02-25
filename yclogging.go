@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"unsafe"
 
 	"C"
@@ -43,39 +44,68 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 	dec := output.NewDecoder(data, int(length))
 
-	entries := make([]*logging.IncomingLogEntry, 0)
+	// todo check if resource is templated
+	resourceToEntries := make(map[string][]*logging.IncomingLogEntry)
 	for {
 		ret, ts, record := output.GetRecord(dec)
 		if ret != 0 {
 			break
 		}
-		entries = append(entries, plugin.entry(toTime(ts), record, tagStr))
-	}
 
-	err := plugin.write(context.Background(), entries)
-	if err == nil {
-		return output.FLB_OK
-	}
-
-	code := status.Code(err)
-	switch code {
-	case codes.PermissionDenied:
-		// kick client reinit
-		fmt.Printf("yc-logging: reinit on write error %s: %q\n", code.String(), err.Error())
-		if initErr := plugin.client.init(); initErr != nil {
-			fmt.Printf("yc-logging: reinit failed: %q\n", initErr.Error())
-		} else {
-			fmt.Printf("yc-logging: reinit succeded\n")
+		entry := plugin.entry(toTime(ts), record, tagStr)
+		resourceType, err := plugin.resourceType.parse(entry.JsonPayload)
+		if err != nil {
+			fmt.Printf("yc-logging: could not write entry %q because of error: %s", entry.String(), err.Error())
+			continue
 		}
-		return output.FLB_RETRY
-	case codes.ResourceExhausted, codes.FailedPrecondition, codes.Unavailable,
-		codes.Canceled, codes.DeadlineExceeded:
-		fmt.Printf("yc-logging: write retriable error %s: %q\n", code.String(), err.Error())
-		return output.FLB_RETRY
-	default:
-		fmt.Printf("yc-logging: write failed %s: %q\n", code.String(), err.Error())
-		return output.FLB_ERROR
+		resourceID, err := plugin.resourceID.parse(entry.JsonPayload)
+		if err != nil {
+			fmt.Printf("yc-logging: could not write entry %q because of error: %s", entry.String(), err.Error())
+			continue
+		}
+
+		resource := fmt.Sprintf("%s+%s", resourceType, resourceID)
+		entries, ok := resourceToEntries[resource]
+		if ok {
+			entries = append(entries, entry)
+		} else {
+			resourceToEntries[resource] = []*logging.IncomingLogEntry{entry}
+		}
 	}
+
+	for resourceString, entries := range resourceToEntries {
+		resourceTypeID := strings.Split(resourceString, "+")
+		resource := &logging.LogEntryResource{
+			Type: resourceTypeID[0],
+			Id:   resourceTypeID[1],
+		}
+		err := plugin.write(context.Background(), entries, resource)
+		if err == nil {
+			continue
+		}
+
+		code := status.Code(err)
+		switch code {
+		case codes.PermissionDenied:
+			// kick client reinit
+			fmt.Printf("yc-logging: reinit on write error %s: %q\n", code.String(), err.Error())
+			if initErr := plugin.client.init(); initErr != nil {
+				fmt.Printf("yc-logging: reinit failed: %q\n", initErr.Error())
+			} else {
+				fmt.Printf("yc-logging: reinit succeded\n")
+			}
+			return output.FLB_RETRY
+		case codes.ResourceExhausted, codes.FailedPrecondition, codes.Unavailable,
+			codes.Canceled, codes.DeadlineExceeded:
+			fmt.Printf("yc-logging: write retriable error %s: %q\n", code.String(), err.Error())
+			return output.FLB_RETRY
+		default:
+			fmt.Printf("yc-logging: write failed %s: %q\n", code.String(), err.Error())
+			return output.FLB_ERROR
+		}
+	}
+
+	return output.FLB_OK
 }
 
 //export FLBPluginExit

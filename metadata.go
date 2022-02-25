@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -101,33 +100,19 @@ func getCachedMetadataValue(metadata *structpb.Struct, key string) (string, erro
 	toCamel := strnaming.NewCamel()
 	toCamel.WithDelimiter('-')
 
+	key = toCamel.Convert(key)
 	path := strings.Split(key, "/")
-	cur := structpb.NewStructValue(metadata)
-	for _, p := range path {
-		p = toCamel.Convert(p)
 
-		switch cur.GetKind().(type) {
-		case *structpb.Value_StructValue:
-			cur = cur.GetStructValue().GetFields()[p]
-		case *structpb.Value_ListValue:
-			index, err := strconv.Atoi(p)
-			if err != nil {
-				return "", fmt.Errorf("incorrect metadata key: %q, expected number instead of %q", key, p)
-			}
-			cur = cur.GetListValue().GetValues()[index]
-		default:
-			return "", fmt.Errorf("incorrect metadata key: %q", key)
-		}
-	}
-	if cur == nil {
-		return "", fmt.Errorf("incorrect metadata key: %q", key)
+	value, err := getValue(metadata, path)
+	if err != nil {
+		return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
 	}
 
-	if _, ok := cur.GetKind().(*structpb.Value_StringValue); ok {
-		return cur.GetStringValue(), nil
+	if _, ok := value.GetKind().(*structpb.Value_StringValue); ok {
+		return value.GetStringValue(), nil
 	}
 
-	content, err := cur.MarshalJSON()
+	content, err := value.MarshalJSON()
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal JSON from value by key %q: %s", key, err.Error())
 	}

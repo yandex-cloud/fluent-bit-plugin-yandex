@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -28,6 +30,29 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func getValue(from *structpb.Struct, path []string) (*structpb.Value, error) {
+	cur := structpb.NewStructValue(from)
+	for _, p := range path {
+		switch cur.GetKind().(type) {
+		case *structpb.Value_StructValue:
+			cur = cur.GetStructValue().GetFields()[p]
+		case *structpb.Value_ListValue:
+			index, err := strconv.Atoi(p)
+			if err != nil {
+				return nil, fmt.Errorf("incorrect path: expected number instead of %q", p)
+			}
+			cur = cur.GetListValue().GetValues()[index]
+		default:
+			return nil, errors.New("incorrect path")
+		}
+	}
+	if cur == nil {
+		return nil, errors.New("incorrect path")
+	}
+
+	return cur, nil
 }
 
 var templateReg = regexp.MustCompile(`{{[^{}]+}}`)
