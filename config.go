@@ -42,12 +42,8 @@ func getResourceTemplates(plugin unsafe.Pointer) (resourceType *template, resour
 		keyResourceID   = "resource_id"
 	)
 
-	resourceTypeRaw := getConfigKey(plugin, keyResourceType)
-	resourceIDRaw := getConfigKey(plugin, keyResourceID)
-
-	if len(resourceTypeRaw)+len(resourceIDRaw) > 0 {
-		return newTemplate(resourceTypeRaw), newTemplate(resourceIDRaw)
-	}
+	resourceType = newTemplate(getConfigKey(plugin, keyResourceType))
+	resourceID = newTemplate(getConfigKey(plugin, keyResourceID))
 
 	return
 }

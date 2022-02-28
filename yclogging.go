@@ -74,10 +74,13 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	}
 
 	for resourceString, entries := range resourceToEntries {
-		resourceTypeID := strings.Split(resourceString, "+")
-		resource := &logging.LogEntryResource{
-			Type: resourceTypeID[0],
-			Id:   resourceTypeID[1],
+		var resource *logging.LogEntryResource
+		if len(resourceString) > 1 {
+			resourceTypeID := strings.Split(resourceString, "+")
+			resource = &logging.LogEntryResource{
+				Type: resourceTypeID[0],
+				Id:   resourceTypeID[1],
+			}
 		}
 		err := plugin.write(context.Background(), entries, resource)
 		if err == nil {
