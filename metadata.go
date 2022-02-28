@@ -107,14 +107,5 @@ func getCachedMetadataValue(metadata *structpb.Struct, key string) (string, erro
 	if err != nil {
 		return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
 	}
-
-	if _, ok := value.GetKind().(*structpb.Value_StringValue); ok {
-		return value.GetStringValue(), nil
-	}
-
-	content, err := value.MarshalJSON()
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal JSON from value by key %q: %s", key, err.Error())
-	}
-	return string(content), nil
+	return value, nil
 }

@@ -32,7 +32,7 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
-func getValue(from *structpb.Struct, path []string) (*structpb.Value, error) {
+func getValue(from *structpb.Struct, path []string) (string, error) {
 	cur := structpb.NewStructValue(from)
 	for _, p := range path {
 		switch cur.GetKind().(type) {
@@ -41,18 +41,26 @@ func getValue(from *structpb.Struct, path []string) (*structpb.Value, error) {
 		case *structpb.Value_ListValue:
 			index, err := strconv.Atoi(p)
 			if err != nil {
-				return nil, fmt.Errorf("incorrect path: expected number instead of %q", p)
+				return "", fmt.Errorf("incorrect path: expected number instead of %q", p)
 			}
 			cur = cur.GetListValue().GetValues()[index]
 		default:
-			return nil, errors.New("incorrect path")
+			return "", errors.New("incorrect path")
 		}
 	}
 	if cur == nil {
-		return nil, errors.New("incorrect path")
+		return "", errors.New("incorrect path")
 	}
 
-	return cur, nil
+	if _, ok := cur.GetKind().(*structpb.Value_StringValue); ok {
+		return cur.GetStringValue(), nil
+	}
+
+	content, err := cur.MarshalJSON()
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal JSON: %s", err.Error())
+	}
+	return string(content), nil
 }
 
 var templateReg = regexp.MustCompile(`{{[^{}]+}}`)

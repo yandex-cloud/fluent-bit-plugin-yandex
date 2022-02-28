@@ -16,7 +16,7 @@ type template struct {
 var resourceTemplateReg = regexp.MustCompile(`{[^{}]+}`)
 
 func (t *template) isTemplated() bool {
-	return len(t.keys) == 0
+	return len(t.keys) != 0
 }
 
 func (t *template) parse(payload *structpb.Struct) (string, error) {
@@ -42,6 +42,7 @@ func newTemplate(raw string) *template {
 
 	keys := make([][]string, len(paths))
 	for i, p := range paths {
+		p = p[1 : len(p)-1]
 		keys[i] = strings.Split(p, "/")
 	}
 
