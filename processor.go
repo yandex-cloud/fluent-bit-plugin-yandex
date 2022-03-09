@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 	"time"
 	"unsafe"
 
@@ -20,6 +21,9 @@ import (
 )
 
 type pluginImpl struct {
+	mu      sync.RWMutex
+	printMu sync.Mutex
+
 	destination *logging.Destination
 
 	resourceType *template

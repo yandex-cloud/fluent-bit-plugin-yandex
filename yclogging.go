@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"unsafe"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"C"
 
 	"github.com/fluent/fluent-bit-go/output"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
@@ -44,7 +45,6 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 	dec := output.NewDecoder(data, int(length))
 
-	// todo check if resource is templated
 	resourceToEntries := make(map[string][]*logging.IncomingLogEntry)
 	for {
 		ret, ts, record := output.GetRecord(dec)
@@ -73,7 +73,11 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		}
 	}
 
-	for resourceString, entries := range resourceToEntries {
+	var wg sync.WaitGroup
+	resBuffer := len(resourceToEntries)
+	results := make(chan error, resBuffer)
+	for resourceString := range resourceToEntries {
+		entries := resourceToEntries[resourceString]
 		var resource *logging.LogEntryResource
 		if len(resourceString) > 1 {
 			resourceTypeID := strings.Split(resourceString, "+")
@@ -82,7 +86,18 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 				Id:   resourceTypeID[1],
 			}
 		}
-		err := plugin.write(context.Background(), entries, resource)
+
+		wg.Add(1)
+		go func(res chan error) {
+			defer wg.Done()
+			err := plugin.write(context.Background(), entries, resource)
+			res <- err
+		}(results)
+	}
+	wg.Wait()
+
+	for i := 0; i < resBuffer; i++ {
+		err := <-results
 		if err == nil {
 			continue
 		}

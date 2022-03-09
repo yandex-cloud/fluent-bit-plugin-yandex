@@ -10,6 +10,8 @@ import (
 )
 
 func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	const batchMaxLen = 100
 	for len(entries) > 0 {
 		var batch []*logging.IncomingLogEntry
@@ -39,12 +41,14 @@ func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEn
 				codes.DeadlineExceeded:
 				toRetry = append(toRetry, batch[idx])
 			default:
+				p.printMu.Lock()
 				// bad message, just print
 				fmt.Printf(
 					"yc-logging: bad message %q: %q\n",
 					truncate(batch[idx].GetMessage(), 512),
 					failure.String(),
 				)
+				p.printMu.Unlock()
 			}
 		}
 		// add back to retry later
