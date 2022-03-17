@@ -25,6 +25,10 @@ images: mod.vendor
 		--build-arg plugin_version=$(PLUGIN_VERSION) \
 		--build-arg fluent_bit_version=$(FLUENT_BIT_1_8) \
 		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_8) .
+	docker build \
+		--build-arg plugin_version=$(PLUGIN_VERSION) \
+		--build-arg fluent_bit_version=$(FLUENT_BIT_1_9) \
+		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_9) .
 
 precommit: mod.tidy fmt vet
 
