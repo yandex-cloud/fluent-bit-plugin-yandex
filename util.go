@@ -10,7 +10,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/fluent/fluent-bit-go/output"
-	"go.uber.org/multierr"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
@@ -64,24 +63,25 @@ func getValue(from *structpb.Struct, path []string) (string, error) {
 }
 
 var templateReg = regexp.MustCompile(`{{[^{}]+}}`)
+var metadataCache *structpb.Struct
 
-func parsePayload(payload string) (string, error) {
-	metadataCache, err := getAllMetadata()
+func parseWithMetadata(raw string) (string, error) {
+	// todo maybe check if raw is templated
+	var err error
+	if metadataCache == nil {
+		metadataCache, err = getAllMetadata()
+	}
 	if err != nil {
 		return "", err
 	}
-	var multierror error
-	parsed := templateReg.ReplaceAllStringFunc(payload, func(t string) string {
-		res, err := replaceTemplate(t, metadataCache)
-		if err != nil {
-			multierror = multierr.Append(multierror, err)
-		}
-		return res
+
+	parsed := templateReg.ReplaceAllStringFunc(raw, func(t string) string {
+		return replaceTemplate(t, metadataCache)
 	})
-	return parsed, multierror
+	return parsed, nil
 }
 
-func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
+func replaceTemplate(t string, metadata *structpb.Struct) string {
 	str := t[2 : len(t)-2]
 
 	fields := strings.Split(str, ":")
@@ -94,9 +94,9 @@ func replaceTemplate(t string, metadata *structpb.Struct) (string, error) {
 	metadataValue, err := getCachedMetadataValue(metadata, key)
 	if err != nil {
 		fmt.Printf("yc-logging: using default value %q for template %q because of error: %s\n", defaultValue, t, err.Error())
-		return defaultValue, nil
+		return defaultValue
 	}
-	return metadataValue, nil
+	return metadataValue
 }
 
 func toString(raw interface{}) string {

@@ -37,11 +37,19 @@ type pluginImpl struct {
 }
 
 func (p *pluginImpl) init(plugin unsafe.Pointer) (int, error) {
-	*p = pluginImpl{
-		keys: getParseKeys(plugin),
-	}
+	*p = pluginImpl{}
 
-	p.resourceType, p.resourceID = getResourceTemplates(plugin)
+	keys, err := getParseKeys(plugin)
+	if err != nil {
+		return output.FLB_ERROR, err
+	}
+	p.keys = keys
+
+	resourceType, resourceID, err := getResourceTemplates(plugin)
+	if err != nil {
+		return output.FLB_ERROR, err
+	}
+	p.resourceType, p.resourceID = resourceType, resourceID
 
 	destination, err := getDestination(plugin)
 	if err != nil {

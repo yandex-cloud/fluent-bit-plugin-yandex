@@ -36,15 +36,25 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
-func getResourceTemplates(plugin unsafe.Pointer) (resourceType *template, resourceID *template) {
+func getResourceTemplates(plugin unsafe.Pointer) (typeTemplate *template, IDTemplate *template, err error) {
 	const (
 		keyResourceType = "resource_type"
 		keyResourceID   = "resource_id"
 	)
 
-	resourceType = newTemplate(getConfigKey(plugin, keyResourceType))
-	resourceID = newTemplate(getConfigKey(plugin, keyResourceID))
+	resourceTypeRaw := getConfigKey(plugin, keyResourceType)
+	resourceType, err := parseWithMetadata(resourceTypeRaw)
+	if err != nil {
+		return
+	}
+	resourceIDRaw := getConfigKey(plugin, keyResourceID)
+	resourceID, err := parseWithMetadata(resourceIDRaw)
+	if err != nil {
+		return
+	}
 
+	typeTemplate = newTemplate(resourceType)
+	IDTemplate = newTemplate(resourceID)
 	return
 }
 
@@ -59,6 +69,11 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 
 	defaultLevel := getConfigKey(plugin, keyDefaultLevel)
 	if len(defaultLevel) > 0 {
+		var err error
+		defaultLevel, err = parseWithMetadata(defaultLevel)
+		if err != nil {
+			return nil, err
+		}
 		level, err := levelFromString(defaultLevel)
 		if err != nil {
 			return nil, err
@@ -71,7 +86,7 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 	defaultPayload := getConfigKey(plugin, keyDefaultPayload)
 	if len(defaultPayload) > 0 {
 		var err error
-		defaultPayload, err = parsePayload(defaultPayload)
+		defaultPayload, err = parseWithMetadata(defaultPayload)
 		if err != nil {
 			return nil, err
 		}
@@ -91,16 +106,29 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 	return nil, nil
 }
 
-func getParseKeys(plugin unsafe.Pointer) *parseKeys {
+func getParseKeys(plugin unsafe.Pointer) (*parseKeys, error) {
 	const (
 		keyLevelKey      = "level_key"
 		keyMessageKey    = "message_key"
 		keyMessageTagKey = "message_tag_key"
 	)
 
-	return &parseKeys{
-		level:      getConfigKey(plugin, keyLevelKey),
-		message:    getConfigKey(plugin, keyMessageKey),
-		messageTag: getConfigKey(plugin, keyMessageTagKey),
+	level, err := parseWithMetadata(getConfigKey(plugin, keyLevelKey))
+	if err != nil {
+		return nil, err
 	}
+	message, err := parseWithMetadata(getConfigKey(plugin, keyMessageKey))
+	if err != nil {
+		return nil, err
+	}
+	messageTag, err := parseWithMetadata(getConfigKey(plugin, keyMessageTagKey))
+	if err != nil {
+		return nil, err
+	}
+
+	return &parseKeys{
+		level:      level,
+		message:    message,
+		messageTag: messageTag,
+	}, nil
 }
