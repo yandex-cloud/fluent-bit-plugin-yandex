@@ -62,7 +62,7 @@ func getValue(from *structpb.Struct, path []string) (string, error) {
 	return string(content), nil
 }
 
-var templateReg = regexp.MustCompile(`{{[^{}]+}}`)
+var metadataTemplateReg = regexp.MustCompile(`{{[^{}]+}}`)
 var metadataCache *structpb.Struct
 
 func parseWithMetadata(raw string) (string, error) {
@@ -75,7 +75,7 @@ func parseWithMetadata(raw string) (string, error) {
 		return "", err
 	}
 
-	parsed := templateReg.ReplaceAllStringFunc(raw, func(t string) string {
+	parsed := metadataTemplateReg.ReplaceAllStringFunc(raw, func(t string) string {
 		return replaceTemplate(t, metadataCache)
 	})
 	return parsed, nil
