@@ -21,10 +21,18 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	)
 
 	if groupID := getConfigKey(plugin, keyGroupID); len(groupID) > 0 {
+		groupID, err := parseWithMetadata(groupID)
+		if err != nil {
+			return nil, err
+		}
 		return &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: groupID}}, nil
 	}
 
 	if folderID := getConfigKey(plugin, keyFolderID); len(folderID) > 0 {
+		folderID, err := parseWithMetadata(folderID)
+		if err != nil {
+			return nil, err
+		}
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
 	}
 

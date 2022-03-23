@@ -66,7 +66,10 @@ var metadataTemplateReg = regexp.MustCompile(`{{[^{}]+}}`)
 var metadataCache *structpb.Struct
 
 func parseWithMetadata(raw string) (string, error) {
-	// todo maybe check if raw is templated
+	if ts := metadataTemplateReg.FindAllString(raw, -1); len(ts) == 0 {
+		return raw, nil
+	}
+
 	var err error
 	if metadataCache == nil {
 		metadataCache, err = getAllMetadata()
