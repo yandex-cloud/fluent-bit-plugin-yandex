@@ -96,8 +96,7 @@ func makeCredentials(authorization string) (ycsdk.Credentials, error) {
 
 func makeTLSConfig(getConfigValue func(string) string) (*tls.Config, error) {
 	const CAFileNameKey = "ca_file"
-	//CAFileName := output.FLBPluginConfigKey(plugin, "ca_file")
-	CAFileName := getConfigValue(CAFileNameKey) // todo decide what to do (diff only in trimming)
+	CAFileName := getConfigValue(CAFileNameKey)
 	fmt.Println("yc-logging: make TLS config")
 
 	if CAFileName != "" {
