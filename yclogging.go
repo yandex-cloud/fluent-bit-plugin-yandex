@@ -68,8 +68,9 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		if ok {
 			entries = append(entries, entry)
 		} else {
-			resourceToEntries[resource] = []*logging.IncomingLogEntry{entry}
+			entries = []*logging.IncomingLogEntry{entry}
 		}
+		resourceToEntries[resource] = entries
 	}
 
 	var wg sync.WaitGroup
