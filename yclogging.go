@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"unsafe"
 
@@ -45,7 +44,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 	dec := output.NewDecoder(data, int(length))
 
-	resourceToEntries := make(map[string][]*logging.IncomingLogEntry)
+	resourceToEntries := make(map[resourceKeys][]*logging.IncomingLogEntry)
 	for {
 		ret, ts, record := output.GetRecord(dec)
 		if ret != 0 {
@@ -64,7 +63,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			continue
 		}
 
-		resource := fmt.Sprintf("%s+%s", resourceType, resourceID)
+		resource := resourceKeys{resourceType, resourceID}
 		entries, ok := resourceToEntries[resource]
 		if ok {
 			entries = append(entries, entry)
@@ -76,14 +75,14 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	var wg sync.WaitGroup
 	resBuffer := len(resourceToEntries)
 	results := make(chan error, resBuffer)
-	for resourceString := range resourceToEntries {
-		entries := resourceToEntries[resourceString]
+	for resourceRaw := range resourceToEntries {
+		entries := resourceToEntries[resourceRaw]
+
 		var resource *logging.LogEntryResource
-		if len(resourceString) > 1 {
-			resourceTypeID := strings.Split(resourceString, "+")
+		if len(resourceRaw.resourceType) > 0 && len(resourceRaw.resourceID) > 0 {
 			resource = &logging.LogEntryResource{
-				Type: resourceTypeID[0],
-				Id:   resourceTypeID[1],
+				Type: resourceRaw.resourceType,
+				Id:   resourceRaw.resourceID,
 			}
 		}
 
