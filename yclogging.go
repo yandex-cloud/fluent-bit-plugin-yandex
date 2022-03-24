@@ -51,19 +51,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			break
 		}
 
-		entry, _ := plugin.entry(toTime(ts), record, tagStr) // todo process returned resourceKeys
-		resourceType, err := plugin.resourceType.parse(entry.JsonPayload)
-		if err != nil {
-			fmt.Printf("yc-logging: could not write entry %q because of error: %s\n", entry.String(), err.Error())
-			continue
-		}
-		resourceID, err := plugin.resourceID.parse(entry.JsonPayload)
-		if err != nil {
-			fmt.Printf("yc-logging: could not write entry %q because of error: %s\n", entry.String(), err.Error())
-			continue
-		}
-
-		resource := resourceKeys{resourceType, resourceID}
+		entry, resource := plugin.entry(toTime(ts), record, tagStr)
 		entries, ok := resourceToEntries[resource]
 		if ok {
 			entries = append(entries, entry)

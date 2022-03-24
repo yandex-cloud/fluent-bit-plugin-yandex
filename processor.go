@@ -26,9 +26,6 @@ type pluginImpl struct {
 
 	destination *logging.Destination
 
-	resourceType *template
-	resourceID   *template
-
 	defaults *logging.LogEntryDefaults
 
 	keys *parseKeys
@@ -44,12 +41,6 @@ func (p *pluginImpl) init(plugin unsafe.Pointer) (int, error) {
 		return output.FLB_ERROR, err
 	}
 	p.keys = keys
-
-	resourceType, resourceID, err := getResourceTemplates(plugin)
-	if err != nil {
-		return output.FLB_ERROR, err
-	}
-	p.resourceType, p.resourceID = resourceType, resourceID
 
 	destination, err := getDestination(plugin)
 	if err != nil {

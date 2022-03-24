@@ -44,29 +44,6 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
-// todo remove
-func getResourceTemplates(plugin unsafe.Pointer) (typeTemplate *template, IDTemplate *template, err error) {
-	const (
-		keyResourceType = "resource_type"
-		keyResourceID   = "resource_id"
-	)
-
-	resourceTypeRaw := getConfigKey(plugin, keyResourceType)
-	resourceType, err := parseWithMetadata(resourceTypeRaw)
-	if err != nil {
-		return
-	}
-	resourceIDRaw := getConfigKey(plugin, keyResourceID)
-	resourceID, err := parseWithMetadata(resourceIDRaw)
-	if err != nil {
-		return
-	}
-
-	typeTemplate = newTemplate(resourceType)
-	IDTemplate = newTemplate(resourceID)
-	return
-}
-
 func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 	const (
 		keyDefaultLevel   = "default_level"
