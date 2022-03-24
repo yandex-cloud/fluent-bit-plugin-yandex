@@ -33,6 +33,7 @@ type parseKeys struct {
 	resourceID   *template
 }
 
+// todo parse resourceKeys
 func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*loggingpb.IncomingLogEntry, resourceKeys) {
 	var message string
 	var level loggingpb.LogLevel_Level

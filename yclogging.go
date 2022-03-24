@@ -46,6 +46,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 	dec := output.NewDecoder(data, int(length))
 
+	// todo move this to pluginImpl
 	resourceToEntries := make(map[resourceKeys][]*logging.IncomingLogEntry)
 	for {
 		ret, ts, record := output.GetRecord(dec)
