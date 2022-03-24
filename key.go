@@ -9,13 +9,20 @@ import (
 	loggingpb "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-type parseKeys struct {
-	level      string
-	message    string
-	messageTag string
+type resourceKeys struct {
+	resourceType string
+	resourceID   string
 }
 
-func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) *loggingpb.IncomingLogEntry {
+type parseKeys struct {
+	level        string
+	message      string
+	messageTag   string
+	resourceType *template
+	resourceID   *template
+}
+
+func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*loggingpb.IncomingLogEntry, resourceKeys) {
 	var message string
 	var level loggingpb.LogLevel_Level
 
@@ -54,5 +61,5 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		Message:     message,
 		JsonPayload: payload,
 		Timestamp:   timestamppb.New(ts),
-	}
+	}, resourceKeys{} // todo fill
 }

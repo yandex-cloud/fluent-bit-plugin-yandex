@@ -72,7 +72,7 @@ func (p *pluginImpl) init(plugin unsafe.Pointer) (int, error) {
 	return output.FLB_OK, nil
 }
 
-func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag string) *logging.IncomingLogEntry {
+func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*logging.IncomingLogEntry, resourceKeys) {
 	return p.keys.entry(ts, record, tag)
 }
 

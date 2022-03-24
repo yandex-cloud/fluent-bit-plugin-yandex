@@ -44,6 +44,7 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
+// todo remove
 func getResourceTemplates(plugin unsafe.Pointer) (typeTemplate *template, IDTemplate *template, err error) {
 	const (
 		keyResourceType = "resource_type"
@@ -119,6 +120,8 @@ func getParseKeys(plugin unsafe.Pointer) (*parseKeys, error) {
 		keyLevelKey      = "level_key"
 		keyMessageKey    = "message_key"
 		keyMessageTagKey = "message_tag_key"
+		keyResourceType  = "resource_type"
+		keyResourceID    = "resource_id"
 	)
 
 	level, err := parseWithMetadata(getConfigKey(plugin, keyLevelKey))
@@ -134,9 +137,20 @@ func getParseKeys(plugin unsafe.Pointer) (*parseKeys, error) {
 		return nil, err
 	}
 
+	resourceType, err := parseWithMetadata(getConfigKey(plugin, keyResourceType))
+	if err != nil {
+		return nil, err
+	}
+	resourceID, err := parseWithMetadata(getConfigKey(plugin, keyResourceID))
+	if err != nil {
+		return nil, err
+	}
+
 	return &parseKeys{
-		level:      level,
-		message:    message,
-		messageTag: messageTag,
+		level:        level,
+		message:      message,
+		messageTag:   messageTag,
+		resourceType: newTemplate(resourceType),
+		resourceID:   newTemplate(resourceID),
 	}, nil
 }
