@@ -13,14 +13,14 @@ func getConfigKey(plugin unsafe.Pointer, key string) string {
 	return strings.TrimSpace(output.FLBPluginConfigKey(plugin, key))
 }
 
-func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
+func getDestination(getConfigValue func(string) string) (*logging.Destination, error) {
 	const (
 		keyFolderID         = "folder_id"
 		keyGroupID          = "group_id"
 		metadataKeyFolderID = "yandex/folder-id"
 	)
 
-	if groupID := getConfigKey(plugin, keyGroupID); len(groupID) > 0 {
+	if groupID := getConfigValue(keyGroupID); len(groupID) > 0 {
 		groupID, err := parseWithMetadata(groupID)
 		if err != nil {
 			return nil, err
@@ -28,7 +28,7 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 		return &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: groupID}}, nil
 	}
 
-	if folderID := getConfigKey(plugin, keyFolderID); len(folderID) > 0 {
+	if folderID := getConfigValue(keyFolderID); len(folderID) > 0 {
 		folderID, err := parseWithMetadata(folderID)
 		if err != nil {
 			return nil, err
@@ -44,7 +44,7 @@ func getDestination(plugin unsafe.Pointer) (*logging.Destination, error) {
 	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
-func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
+func getDefaults(getConfigValue func(string) string) (*logging.LogEntryDefaults, error) {
 	const (
 		keyDefaultLevel   = "default_level"
 		keyDefaultPayload = "default_payload"
@@ -53,7 +53,7 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 	entryDefaults := new(logging.LogEntryDefaults)
 	haveDefaults := false
 
-	defaultLevel := getConfigKey(plugin, keyDefaultLevel)
+	defaultLevel := getConfigValue(keyDefaultLevel)
 	if len(defaultLevel) > 0 {
 		var err error
 		defaultLevel, err = parseWithMetadata(defaultLevel)
@@ -69,7 +69,7 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 		fmt.Printf("yc-logging: will use %s as default level\n", level.String())
 	}
 
-	defaultPayload := getConfigKey(plugin, keyDefaultPayload)
+	defaultPayload := getConfigValue(keyDefaultPayload)
 	if len(defaultPayload) > 0 {
 		var err error
 		defaultPayload, err = parseWithMetadata(defaultPayload)
@@ -92,7 +92,7 @@ func getDefaults(plugin unsafe.Pointer) (*logging.LogEntryDefaults, error) {
 	return nil, nil
 }
 
-func getParseKeys(plugin unsafe.Pointer) (*parseKeys, error) {
+func getParseKeys(getConfigValue func(string) string) (*parseKeys, error) {
 	const (
 		keyLevelKey      = "level_key"
 		keyMessageKey    = "message_key"
@@ -101,24 +101,24 @@ func getParseKeys(plugin unsafe.Pointer) (*parseKeys, error) {
 		keyResourceID    = "resource_id"
 	)
 
-	level, err := parseWithMetadata(getConfigKey(plugin, keyLevelKey))
+	level, err := parseWithMetadata(getConfigValue(keyLevelKey))
 	if err != nil {
 		return nil, err
 	}
-	message, err := parseWithMetadata(getConfigKey(plugin, keyMessageKey))
+	message, err := parseWithMetadata(getConfigValue(keyMessageKey))
 	if err != nil {
 		return nil, err
 	}
-	messageTag, err := parseWithMetadata(getConfigKey(plugin, keyMessageTagKey))
+	messageTag, err := parseWithMetadata(getConfigValue(keyMessageTagKey))
 	if err != nil {
 		return nil, err
 	}
 
-	resourceType, err := parseWithMetadata(getConfigKey(plugin, keyResourceType))
+	resourceType, err := parseWithMetadata(getConfigValue(keyResourceType))
 	if err != nil {
 		return nil, err
 	}
-	resourceID, err := parseWithMetadata(getConfigKey(plugin, keyResourceID))
+	resourceID, err := parseWithMetadata(getConfigValue(keyResourceID))
 	if err != nil {
 		return nil, err
 	}
