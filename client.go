@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"unsafe"
 
 	"google.golang.org/grpc"
 
@@ -32,7 +31,7 @@ var (
 	FluentBitVersion string
 )
 
-func clientInit(c *client, plugin unsafe.Pointer) func() error {
+func clientInit(c *client, getConfigValue func(string) string) func() error {
 	var initTime time.Time
 	return func() error {
 		c.mu.Lock()
@@ -50,7 +49,7 @@ func clientInit(c *client, plugin unsafe.Pointer) func() error {
 			defaultEndpoint  = "api.cloud.yandex.net:443"
 		)
 
-		authorization := getConfigKey(plugin, keyAuthorization)
+		authorization := getConfigValue(keyAuthorization)
 		if authorization == "" {
 			return fmt.Errorf("authorization missing")
 		}
@@ -60,12 +59,12 @@ func clientInit(c *client, plugin unsafe.Pointer) func() error {
 			return err
 		}
 
-		endpoint := getConfigKey(plugin, keyEndpoint)
+		endpoint := getConfigValue(keyEndpoint)
 		if endpoint == "" {
 			endpoint = defaultEndpoint
 		}
 
-		tlsConfig, err := makeTLSConfig(plugin)
+		tlsConfig, err := makeTLSConfig(getConfigValue)
 		if err != nil {
 			return fmt.Errorf("error creating tls config: %s", err.Error())
 		}
@@ -87,8 +86,8 @@ func clientInit(c *client, plugin unsafe.Pointer) func() error {
 	}
 }
 
-func getIngestionClient(plugin unsafe.Pointer) (*client, error) {
+func getIngestionClient(getConfigValue func(string) string) (*client, error) {
 	c := new(client)
-	c.init = clientInit(c, plugin)
+	c.init = clientInit(c, getConfigValue)
 	return c, c.init()
 }

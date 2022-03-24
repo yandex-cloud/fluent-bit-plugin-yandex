@@ -26,7 +26,9 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	fmt.Println("yc-logging: init")
 
 	impl := new(pluginImpl)
-	code, err := impl.init(plugin)
+	code, err := impl.init(func(key string) string {
+		return getConfigKey(plugin, key)
+	})
 	if err != nil {
 		fmt.Printf("yc-logging: init err: %s\n", err.Error())
 		return code
