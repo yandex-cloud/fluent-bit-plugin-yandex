@@ -11,7 +11,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
 
@@ -33,28 +32,28 @@ type pluginImpl struct {
 	client *client
 }
 
-func (p *pluginImpl) init(plugin unsafe.Pointer) (int, error) {
+func (p *pluginImpl) init(getConfigValue func(string) string) (int, error) {
 	*p = pluginImpl{}
 
-	keys, err := getParseKeys(plugin)
+	keys, err := getParseKeys(getConfigValue)
 	if err != nil {
 		return output.FLB_ERROR, err
 	}
 	p.keys = keys
 
-	destination, err := getDestination(plugin)
+	destination, err := getDestination(getConfigValue)
 	if err != nil {
 		return output.FLB_ERROR, err
 	}
 	p.destination = destination
 
-	entryDefaults, err := getDefaults(plugin)
+	entryDefaults, err := getDefaults(getConfigValue)
 	if err != nil {
 		return output.FLB_ERROR, err
 	}
 	p.defaults = entryDefaults
 
-	client, err := getIngestionClient(plugin)
+	client, err := getIngestionClient(getConfigValue)
 	if err != nil {
 		return output.FLB_ERROR, err
 	}
@@ -95,8 +94,9 @@ func makeCredentials(authorization string) (ycsdk.Credentials, error) {
 	}
 }
 
-func makeTLSConfig(plugin unsafe.Pointer) (*tls.Config, error) {
-	CAFileName := output.FLBPluginConfigKey(plugin, "ca_file")
+func makeTLSConfig(getConfigValue func(string) string) (*tls.Config, error) {
+	const CAFileNameKey = "ca_file"
+	CAFileName := getConfigValue(CAFileNameKey)
 	fmt.Println("yc-logging: make TLS config")
 
 	if CAFileName != "" {
