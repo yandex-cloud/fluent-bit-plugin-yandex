@@ -14,6 +14,17 @@ type resourceKeys struct {
 	resourceID   string
 }
 
+func (rk *resourceKeys) logEntryResource() *loggingpb.LogEntryResource {
+	var resource *loggingpb.LogEntryResource
+	if len(rk.resourceType) > 0 && len(rk.resourceID) > 0 {
+		resource = &loggingpb.LogEntryResource{
+			Type: rk.resourceType,
+			Id:   rk.resourceID,
+		}
+	}
+	return resource
+}
+
 type parseKeys struct {
 	level        string
 	message      string

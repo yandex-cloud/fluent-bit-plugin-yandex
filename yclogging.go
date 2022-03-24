@@ -64,16 +64,10 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	var wg sync.WaitGroup
 	resBuffer := len(resourceToEntries)
 	results := make(chan error, resBuffer)
-	for resourceRaw := range resourceToEntries {
-		entries := resourceToEntries[resourceRaw]
 
-		var resource *logging.LogEntryResource
-		if len(resourceRaw.resourceType) > 0 && len(resourceRaw.resourceID) > 0 {
-			resource = &logging.LogEntryResource{
-				Type: resourceRaw.resourceType,
-				Id:   resourceRaw.resourceID,
-			}
-		}
+	for resource, entries := range resourceToEntries {
+		resource := resource.logEntryResource()
+		entries := entries
 
 		wg.Add(1)
 		go func(res chan error) {
