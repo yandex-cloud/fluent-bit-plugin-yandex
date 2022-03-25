@@ -28,7 +28,7 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	impl := new(pluginImpl)
 	code, err := impl.init(func(key string) string {
 		return getConfigKey(plugin, key)
-	})
+	}, NewCachingMetadataProvider())
 	if err != nil {
 		fmt.Printf("yc-logging: init err: %s\n", err.Error())
 		return code
