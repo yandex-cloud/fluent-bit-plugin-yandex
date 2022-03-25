@@ -63,28 +63,19 @@ func getValue(from *structpb.Struct, path []string) (string, error) {
 }
 
 var metadataTemplateReg = regexp.MustCompile(`{{[^{}]+}}`)
-var metadataCache *structpb.Struct
 
-func parseWithMetadata(raw string) (string, error) {
+func parseWithMetadata(raw string, metadataProvider MetadataProvider) (string, error) {
 	if ts := metadataTemplateReg.FindAllString(raw, -1); len(ts) == 0 {
 		return raw, nil
 	}
 
-	var err error
-	if metadataCache == nil {
-		metadataCache, err = getAllMetadata()
-	}
-	if err != nil {
-		return "", err
-	}
-
 	parsed := metadataTemplateReg.ReplaceAllStringFunc(raw, func(t string) string {
-		return replaceTemplate(t, metadataCache)
+		return replaceTemplate(t, metadataProvider)
 	})
 	return parsed, nil
 }
 
-func replaceTemplate(t string, metadata *structpb.Struct) string {
+func replaceTemplate(t string, metadataProvider MetadataProvider) string {
 	str := t[2 : len(t)-2]
 
 	fields := strings.Split(str, ":")
@@ -94,7 +85,7 @@ func replaceTemplate(t string, metadata *structpb.Struct) string {
 		defaultValue = fields[1]
 	}
 
-	metadataValue, err := getCachedMetadataValue(metadata, key)
+	metadataValue, err := metadataProvider.getMetadataValue(key)
 	if err != nil {
 		fmt.Printf("yc-logging: using default value %q for template %q because of error: %s\n", defaultValue, t, err.Error())
 		return defaultValue

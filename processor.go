@@ -32,22 +32,22 @@ type pluginImpl struct {
 	client *client
 }
 
-func (p *pluginImpl) init(getConfigValue func(string) string) (int, error) {
+func (p *pluginImpl) init(getConfigValue func(string) string, metadataProvider MetadataProvider) (int, error) {
 	*p = pluginImpl{}
 
-	keys, err := getParseKeys(getConfigValue)
+	keys, err := getParseKeys(getConfigValue, metadataProvider)
 	if err != nil {
 		return output.FLB_ERROR, err
 	}
 	p.keys = keys
 
-	destination, err := getDestination(getConfigValue)
+	destination, err := getDestination(getConfigValue, metadataProvider)
 	if err != nil {
 		return output.FLB_ERROR, err
 	}
 	p.destination = destination
 
-	entryDefaults, err := getDefaults(getConfigValue)
+	entryDefaults, err := getDefaults(getConfigValue, metadataProvider)
 	if err != nil {
 		return output.FLB_ERROR, err
 	}
