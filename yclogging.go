@@ -12,7 +12,6 @@ import (
 	"C"
 
 	"github.com/fluent/fluent-bit-go/output"
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
 //export FLBPluginRegister
@@ -45,24 +44,10 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	plugin := output.FLBPluginGetContext(ctx).(*pluginImpl)
 
 	dec := output.NewDecoder(data, int(length))
-
-	// todo move this to pluginImpl
-	resourceToEntries := make(map[resourceKeys][]*logging.IncomingLogEntry)
-	for {
-		ret, ts, record := output.GetRecord(dec)
-		if ret != 0 {
-			break
-		}
-
-		entry, resource := plugin.entry(toTime(ts), record, tagStr)
-		entries, ok := resourceToEntries[resource]
-		if ok {
-			entries = append(entries, entry)
-		} else {
-			entries = []*logging.IncomingLogEntry{entry}
-		}
-		resourceToEntries[resource] = entries
+	provider := func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
+		return output.GetRecord(dec)
 	}
+	resourceToEntries := plugin.transform(provider, tagStr)
 
 	var wg sync.WaitGroup
 	resBuffer := len(resourceToEntries)

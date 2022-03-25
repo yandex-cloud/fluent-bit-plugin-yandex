@@ -19,6 +19,8 @@ import (
 	"github.com/yandex-cloud/go-sdk/iamkey"
 )
 
+type nextRecordProvider func() (ret int, ts interface{}, rec map[interface{}]interface{})
+
 type pluginImpl struct {
 	mu      sync.RWMutex
 	printMu sync.Mutex
@@ -60,6 +62,28 @@ func (p *pluginImpl) init(getConfigValue func(string) string, metadataProvider M
 	p.client = client
 
 	return output.FLB_OK, nil
+}
+
+func (p *pluginImpl) transform(provider nextRecordProvider, tag string) map[resourceKeys][]*logging.IncomingLogEntry {
+	resourceToEntries := make(map[resourceKeys][]*logging.IncomingLogEntry)
+
+	for {
+		ret, ts, record := provider()
+		if ret != 0 {
+			break
+		}
+
+		entry, resource := p.entry(toTime(ts), record, tag)
+		entries, ok := resourceToEntries[resource]
+		if ok {
+			entries = append(entries, entry)
+		} else {
+			entries = []*logging.IncomingLogEntry{entry}
+		}
+		resourceToEntries[resource] = entries
+	}
+
+	return resourceToEntries
 }
 
 func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*logging.IncomingLogEntry, resourceKeys) {
