@@ -31,6 +31,48 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
+func getRemoveValue(record map[interface{}]interface{}, path []string) (string, error) {
+	var cur interface{} = record
+	for i, p := range path {
+		switch typed := cur.(type) {
+		case map[interface{}]interface{}:
+			cur = typed[p]
+			if i == len(path)-1 {
+				delete(typed, p)
+			}
+		case []interface{}:
+			index, err := strconv.Atoi(p)
+			if err != nil {
+				return "", fmt.Errorf("incorrect path: expected number instead of %q", p)
+			}
+			cur = typed[index]
+			if i == len(p)-1 {
+				typed = append(typed[:index], typed[index+1:]...)
+			}
+		default:
+			return "", errors.New("incorrect path")
+		}
+	}
+	if cur == nil {
+		return "", errors.New("incorrect path")
+	}
+
+	switch cur.(type) {
+	case string, []byte:
+		return toString(cur), nil
+	default:
+		value, err := structpb.NewValue(normalize(cur))
+		if err != nil {
+			return "", fmt.Errorf("failed to create protobuf value to marshal JSON: %s", err.Error())
+		}
+		content, err := value.MarshalJSON()
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal JSON: %s", err.Error())
+		}
+		return string(content), nil
+	}
+}
+
 func getValue(from *structpb.Struct, path []string) (string, error) {
 	cur := structpb.NewStructValue(from)
 	for _, p := range path {
