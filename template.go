@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type template struct {
@@ -19,16 +17,16 @@ func (t *template) isTemplated() bool {
 	return len(t.keys) != 0
 }
 
-func (t *template) parse(payload *structpb.Struct) (string, error) {
+func (t *template) parse(record map[interface{}]interface{}) (string, error) {
 	if !t.isTemplated() {
 		return t.format, nil
 	}
 
 	values := make([]interface{}, 0)
 	for _, path := range t.keys {
-		value, err := getValue(payload, path)
+		value, err := getRemoveValue(record, path)
 		if err != nil {
-			return "", fmt.Errorf("failed to parse template because of error: %s", err.Error())
+			return "", err
 		}
 		values = append(values, value)
 	}

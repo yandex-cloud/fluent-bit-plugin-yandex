@@ -64,8 +64,8 @@ func (p *pluginImpl) init(getConfigValue func(string) string, metadataProvider M
 	return output.FLB_OK, nil
 }
 
-func (p *pluginImpl) transform(provider nextRecordProvider, tag string) map[resourceKeys][]*logging.IncomingLogEntry {
-	resourceToEntries := make(map[resourceKeys][]*logging.IncomingLogEntry)
+func (p *pluginImpl) transform(provider nextRecordProvider, tag string) map[resource][]*logging.IncomingLogEntry {
+	resourceToEntries := make(map[resource][]*logging.IncomingLogEntry)
 
 	for {
 		ret, ts, record := provider()
@@ -73,20 +73,24 @@ func (p *pluginImpl) transform(provider nextRecordProvider, tag string) map[reso
 			break
 		}
 
-		entry, resource := p.entry(toTime(ts), record, tag)
-		entries, ok := resourceToEntries[resource]
+		entry, res, err := p.entry(toTime(ts), record, tag)
+		if err != nil {
+			fmt.Printf("yc-logging: could not write entry %q because of error: %s\n", entry.String(), err.Error())
+			continue
+		}
+		entries, ok := resourceToEntries[res]
 		if ok {
 			entries = append(entries, entry)
 		} else {
 			entries = []*logging.IncomingLogEntry{entry}
 		}
-		resourceToEntries[resource] = entries
+		resourceToEntries[res] = entries
 	}
 
 	return resourceToEntries
 }
 
-func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*logging.IncomingLogEntry, resourceKeys) {
+func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*logging.IncomingLogEntry, resource, error) {
 	return p.keys.entry(ts, record, tag)
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -9,12 +10,12 @@ import (
 	loggingpb "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-type resourceKeys struct {
+type resource struct {
 	resourceType string
 	resourceID   string
 }
 
-func (rk *resourceKeys) logEntryResource() *loggingpb.LogEntryResource {
+func (rk *resource) logEntryResource() *loggingpb.LogEntryResource {
 	var resource *loggingpb.LogEntryResource
 	if len(rk.resourceType) > 0 && len(rk.resourceID) > 0 {
 		resource = &loggingpb.LogEntryResource{
@@ -33,14 +34,26 @@ type parseKeys struct {
 	resourceID   *template
 }
 
-// todo parse resourceKeys
-func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*loggingpb.IncomingLogEntry, resourceKeys) {
+func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*loggingpb.IncomingLogEntry, resource, error) {
 	var message string
 	var level loggingpb.LogLevel_Level
 
 	values := make(map[string]*structpb.Value)
 	if len(pk.messageTag) > 0 {
 		values[pk.messageTag] = structpb.NewStringValue(tag)
+	}
+
+	resourceType, err := pk.resourceType.parse(record)
+	if err != nil {
+		return nil, resource{}, fmt.Errorf("failed to parse resource type: %s", err.Error())
+	}
+	resourceID, err := pk.resourceType.parse(record)
+	if err != nil {
+		return nil, resource{}, fmt.Errorf("failed to parse resource ID: %s", err.Error())
+	}
+	resource := resource{
+		resourceType: resourceType,
+		resourceID:   resourceID,
 	}
 
 	for k, v := range record {
@@ -73,5 +86,5 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		Message:     message,
 		JsonPayload: payload,
 		Timestamp:   timestamppb.New(ts),
-	}, resourceKeys{} // todo fill
+	}, resource, nil
 }
