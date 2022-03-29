@@ -127,7 +127,7 @@ func replaceTemplate(t string, metadataProvider MetadataProvider) string {
 		defaultValue = fields[1]
 	}
 
-	metadataValue, err := metadataProvider.getMetadataValue(key)
+	metadataValue, err := metadataProvider.getValue(key)
 	if err != nil {
 		fmt.Printf("yc-logging: using default value %q for template %q because of error: %s\n", defaultValue, t, err.Error())
 		return defaultValue

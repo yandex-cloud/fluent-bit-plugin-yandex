@@ -28,14 +28,14 @@ func getMetadataUrl() string {
 }
 
 type MetadataProvider interface {
-	getMetadataValue(key string) (string, error)
+	getValue(key string) (string, error)
 }
 
 type CachingMetadataProvider struct {
 	cache *structpb.Struct
 }
 
-func (mp *CachingMetadataProvider) getMetadataValue(key string) (string, error) {
+func (mp *CachingMetadataProvider) getValue(key string) (string, error) {
 	if mp.cache == nil {
 		err := mp.getAllMetadata()
 		if err != nil {
