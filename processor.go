@@ -75,7 +75,7 @@ func (p *pluginImpl) transform(provider nextRecordProvider, tag string) map[reso
 
 		entry, res, err := p.entry(toTime(ts), record, tag)
 		if err != nil {
-			fmt.Printf("yc-logging: could not write entry %q because of error: %s\n", entry.String(), err.Error())
+			fmt.Printf("yc-logging: could not write entry %v because of error: %s\n", record, err.Error())
 			continue
 		}
 		entries, ok := resourceToEntries[res]

@@ -36,7 +36,7 @@ func getDestination(getConfigValue func(string) string, metadataProvider Metadat
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
 	}
 
-	folderId, err := metadataProvider.getMetadataValue(metadataKeyFolderID)
+	folderId, err := metadataProvider.getValue(metadataKeyFolderID)
 	if err != nil {
 		return nil, err
 	}
