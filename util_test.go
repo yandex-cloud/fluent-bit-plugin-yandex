@@ -3,9 +3,8 @@ package main
 import (
 	"testing"
 
-	"google.golang.org/protobuf/types/known/structpb"
-
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestGetRecordValue_Success(t *testing.T) {
@@ -21,7 +20,6 @@ func TestGetRecordValue_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
 }
-
 func TestGetRecordValue_WithArray_Success(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": []interface{}{"value"},
@@ -33,7 +31,6 @@ func TestGetRecordValue_WithArray_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
 }
-
 func TestGetRecordValue_JSONValue_Success(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": map[interface{}]interface{}{
@@ -50,7 +47,6 @@ func TestGetRecordValue_JSONValue_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "{\"first\":\"1st\",\"second\":\"2nd\"}", val)
 }
-
 func TestGetRecordValue_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": 123,
@@ -61,7 +57,6 @@ func TestGetRecordValue_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
-
 func TestGetRecordValue_WithArray_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": []interface{}{"value"},
@@ -72,7 +67,6 @@ func TestGetRecordValue_WithArray_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
-
 func TestGetRecordValue_WithArray_OutOfBound_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": []interface{}{"value"},
@@ -94,7 +88,6 @@ func TestGetValue_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
 }
-
 func TestGetValue_WithArray_Success(t *testing.T) {
 	from := new(structpb.Struct)
 	_ = from.UnmarshalJSON([]byte("{\"a\":[\"value\"]}"))
@@ -105,7 +98,6 @@ func TestGetValue_WithArray_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
 }
-
 func TestGetValue_JSONValue_Success(t *testing.T) {
 	from := new(structpb.Struct)
 	_ = from.UnmarshalJSON([]byte("{\"a\":{\"b\":{\"first\":\"1st\",\"second\":\"2nd\"}}}"))
@@ -114,10 +106,8 @@ func TestGetValue_JSONValue_Success(t *testing.T) {
 	val, err := getValue(from, path)
 
 	assert.Nil(t, err)
-	expected := "{\"first\":\"1st\",\"second\":\"2nd\"}"
-	assert.Equal(t, expected, val)
+	assert.Equal(t, "{\"first\":\"1st\",\"second\":\"2nd\"}", val)
 }
-
 func TestGetValue_Fail(t *testing.T) {
 	from := new(structpb.Struct)
 	_ = from.UnmarshalJSON([]byte("{\"a\":123}"))
@@ -127,7 +117,6 @@ func TestGetValue_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
-
 func TestGetValue_WithArray_Fail(t *testing.T) {
 	from := new(structpb.Struct)
 	_ = from.UnmarshalJSON([]byte("{\"a\":[\"value\"]}"))
@@ -137,7 +126,6 @@ func TestGetValue_WithArray_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
-
 func TestGetValue_WithArray_OutOfBound_Fail(t *testing.T) {
 	from := new(structpb.Struct)
 	_ = from.UnmarshalJSON([]byte("{\"a\":[\"value\"]}"))
@@ -146,4 +134,61 @@ func TestGetValue_WithArray_OutOfBound_Fail(t *testing.T) {
 	_, err := getValue(from, path)
 
 	assert.NotNil(t, err)
+}
+
+func TestParseWithMetadata_Success(t *testing.T) {
+	var metadataProvider = TestMetadataProvider{
+		"key": "val",
+	}
+	raw := "begin_{{key}}"
+
+	parsed := parseWithMetadata(raw, metadataProvider)
+
+	assert.Equal(t, "begin_val", parsed)
+}
+func TestParseWithMetadata_JSONResult_Success(t *testing.T) {
+	var metadataProvider = TestMetadataProvider{
+		"key": "{\"first\":\"1st\",\"second\":\"2nd\"}",
+	}
+	raw := "{\"key\":{{key}}}"
+
+	parsed := parseWithMetadata(raw, metadataProvider)
+
+	assert.Equal(t, "{\"key\":{\"first\":\"1st\",\"second\":\"2nd\"}}", parsed)
+}
+func TestParseWithMetadata_SimpleJsonPayloadTemplate_Success(t *testing.T) {
+	var metadataProvider = TestMetadataProvider{
+		"key": "val",
+	}
+	raw := "{from/json/payload}_{{key}}"
+
+	parsed := parseWithMetadata(raw, metadataProvider)
+
+	assert.Equal(t, "{from/json/payload}_val", parsed)
+}
+func TestParseWithMetadata_NestedJsonPayloadTemplate_Success(t *testing.T) {
+	var metadataProvider = TestMetadataProvider{
+		"key": "val",
+	}
+	raw := "{from/json/payload/{{key}}}"
+
+	parsed := parseWithMetadata(raw, metadataProvider)
+
+	assert.Equal(t, "{from/json/payload/val}", parsed)
+}
+func TestParseWithMetadata_DefaultValue_Success(t *testing.T) {
+	var metadataProvider = TestMetadataProvider{}
+	raw := "{{key}}_end"
+
+	parsed := parseWithMetadata(raw, metadataProvider)
+
+	assert.Equal(t, "_end", parsed)
+}
+func TestParseWithMetadata_DefinedDefaultValue_Success(t *testing.T) {
+	var metadataProvider = TestMetadataProvider{}
+	raw := "{{key:default}}_end"
+
+	parsed := parseWithMetadata(raw, metadataProvider)
+
+	assert.Equal(t, "default_end", parsed)
 }
