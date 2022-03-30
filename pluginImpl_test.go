@@ -37,14 +37,14 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 	_, err := plugin.init(getConfigValue, metadataProvider)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "group_id"}}, plugin.destination, "incorrect destination")
-	assert.Equal(t, logging.LogLevel_INFO, plugin.defaults.Level, "incorrect default level")
-	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JsonPayload.Fields, "incorrect default payload")
-	assert.Equal(t, "level", plugin.keys.level, "incorrect level key")
-	assert.Equal(t, "message", plugin.keys.message, "incorrect message key")
-	assert.Equal(t, "message_tag", plugin.keys.messageTag, "incorrect message tag key")
-	assert.Equal(t, &template{format: "resource_type", keys: [][]string{}}, plugin.keys.resourceType, "incorrect resource type")
-	assert.Equal(t, &template{format: "resource_id", keys: [][]string{}}, plugin.keys.resourceID, "incorrect resource id")
+	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "group_id"}}, plugin.destination)
+	assert.Equal(t, logging.LogLevel_INFO, plugin.defaults.Level)
+	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JsonPayload.Fields)
+	assert.Equal(t, "level", plugin.keys.level)
+	assert.Equal(t, "message", plugin.keys.message)
+	assert.Equal(t, "message_tag", plugin.keys.messageTag)
+	assert.Equal(t, &template{format: "resource_type", keys: [][]string{}}, plugin.keys.resourceType)
+	assert.Equal(t, &template{format: "resource_id", keys: [][]string{}}, plugin.keys.resourceID)
 }
 
 func TestInit_FolderID_Success(t *testing.T) {
@@ -58,7 +58,7 @@ func TestInit_FolderID_Success(t *testing.T) {
 	_, err := plugin.init(getConfigValue, metadataProvider)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder_id"}}, plugin.destination, "incorrect destination")
+	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder_id"}}, plugin.destination)
 }
 
 func TestInit_FolderIDAutodetection_Success(t *testing.T) {
@@ -73,7 +73,7 @@ func TestInit_FolderIDAutodetection_Success(t *testing.T) {
 	_, err := plugin.init(getConfigValue, metadataProvider)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder-id"}}, plugin.destination, "incorrect destination")
+	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder-id"}}, plugin.destination)
 }
 
 func TestInit_FolderIDAutodetection_Fail(t *testing.T) {
