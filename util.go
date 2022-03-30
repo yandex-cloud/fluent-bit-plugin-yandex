@@ -106,15 +106,15 @@ func getValue(from *structpb.Struct, path []string) (string, error) {
 
 var metadataTemplateReg = regexp.MustCompile(`{{[^{}]+}}`)
 
-func parseWithMetadata(raw string, metadataProvider MetadataProvider) (string, error) {
+func parseWithMetadata(raw string, metadataProvider MetadataProvider) string {
 	if ts := metadataTemplateReg.FindAllString(raw, -1); len(ts) == 0 {
-		return raw, nil
+		return raw
 	}
 
 	parsed := metadataTemplateReg.ReplaceAllStringFunc(raw, func(t string) string {
 		return replaceTemplate(t, metadataProvider)
 	})
-	return parsed, nil
+	return parsed
 }
 
 func replaceTemplate(t string, metadataProvider MetadataProvider) string {
