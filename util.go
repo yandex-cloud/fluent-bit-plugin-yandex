@@ -42,6 +42,9 @@ func getRecordValue(record map[interface{}]interface{}, path []string) (string, 
 			if err != nil {
 				return "", fmt.Errorf("incorrect path: expected number instead of %q", p)
 			}
+			if index >= len(typed) {
+				return "", fmt.Errorf("incorrect path: index %q out of bound", p)
+			}
 			cur = typed[index]
 		default:
 			return "", errors.New("incorrect path")
@@ -77,6 +80,9 @@ func getValue(from *structpb.Struct, path []string) (string, error) {
 			index, err := strconv.Atoi(p)
 			if err != nil {
 				return "", fmt.Errorf("incorrect path: expected number instead of %q", p)
+			}
+			if index >= len(cur.GetListValue().GetValues()) {
+				return "", fmt.Errorf("incorrect path: index %q out of bound", p)
 			}
 			cur = cur.GetListValue().GetValues()[index]
 		default:
