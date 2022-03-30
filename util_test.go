@@ -57,6 +57,18 @@ func TestGetRecordValue_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
+func TestGetRecordValue_NoSuchKey_Fail(t *testing.T) {
+	record := map[interface{}]interface{}{
+		"a": map[interface{}]interface{}{
+			"c": "value",
+		},
+	}
+	path := []string{"a", "b"}
+
+	_, err := getRecordValue(record, path)
+
+	assert.NotNil(t, err)
+}
 func TestGetRecordValue_WithArray_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": []interface{}{"value"},
@@ -111,6 +123,15 @@ func TestGetValue_JSONValue_Success(t *testing.T) {
 func TestGetValue_Fail(t *testing.T) {
 	from := new(structpb.Struct)
 	_ = from.UnmarshalJSON([]byte("{\"a\":123}"))
+	path := []string{"a", "b"}
+
+	_, err := getValue(from, path)
+
+	assert.NotNil(t, err)
+}
+func TestGetValue_NoSuchKey_Fail(t *testing.T) {
+	from := new(structpb.Struct)
+	_ = from.UnmarshalJSON([]byte("{\"a\":{\"c\":\"value\"}}"))
 	path := []string{"a", "b"}
 
 	_, err := getValue(from, path)
