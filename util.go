@@ -31,24 +31,18 @@ func payloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
-func getRemoveValue(record map[interface{}]interface{}, path []string) (string, error) {
+func getRecordValue(record map[interface{}]interface{}, path []string) (string, error) {
 	var cur interface{} = record
-	for i, p := range path {
+	for _, p := range path {
 		switch typed := cur.(type) {
 		case map[interface{}]interface{}:
 			cur = typed[p]
-			if i == len(path)-1 {
-				delete(typed, p)
-			}
 		case []interface{}:
 			index, err := strconv.Atoi(p)
 			if err != nil {
 				return "", fmt.Errorf("incorrect path: expected number instead of %q", p)
 			}
 			cur = typed[index]
-			if i == len(p)-1 {
-				typed = append(typed[:index], typed[index+1:]...)
-			}
 		default:
 			return "", errors.New("incorrect path")
 		}
