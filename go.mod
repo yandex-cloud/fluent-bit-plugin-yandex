@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/fluent/fluent-bit-go v0.0.0-20201210173045-3fd1e0486df2
 	github.com/startdusk/strnaming v0.7.0
+	github.com/stretchr/testify v1.7.0
 	github.com/yandex-cloud/go-genproto v0.0.0-20211202135052-789603780fb2
 	github.com/yandex-cloud/go-sdk v0.0.0-20211206101223-7c4e7926bf53
 	google.golang.org/grpc v1.42.0
@@ -18,6 +19,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	golang.org/x/net v0.0.0-20211205041911-012df41ee64c // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect

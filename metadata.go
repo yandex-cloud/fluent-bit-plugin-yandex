@@ -31,6 +31,16 @@ type MetadataProvider interface {
 	getValue(key string) (string, error)
 }
 
+type TestMetadataProvider map[string]string
+
+func (mp TestMetadataProvider) getValue(key string) (string, error) {
+	val, ok := mp[key]
+	if ok {
+		return val, nil
+	}
+	return "", fmt.Errorf("failed to get metadata value by key %q", key)
+}
+
 type CachingMetadataProvider struct {
 	cache *structpb.Struct
 }
