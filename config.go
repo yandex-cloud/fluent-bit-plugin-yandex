@@ -21,18 +21,12 @@ func getDestination(getConfigValue func(string) string, metadataProvider Metadat
 	)
 
 	if groupID := getConfigValue(keyGroupID); len(groupID) > 0 {
-		groupID, err := parseWithMetadata(groupID, metadataProvider)
-		if err != nil {
-			return nil, err
-		}
+		groupID = parseWithMetadata(groupID, metadataProvider)
 		return &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: groupID}}, nil
 	}
 
 	if folderID := getConfigValue(keyFolderID); len(folderID) > 0 {
-		folderID, err := parseWithMetadata(folderID, metadataProvider)
-		if err != nil {
-			return nil, err
-		}
+		folderID = parseWithMetadata(folderID, metadataProvider)
 		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
 	}
 
@@ -56,10 +50,7 @@ func getDefaults(getConfigValue func(string) string, metadataProvider MetadataPr
 	defaultLevel := getConfigValue(keyDefaultLevel)
 	if len(defaultLevel) > 0 {
 		var err error
-		defaultLevel, err = parseWithMetadata(defaultLevel, metadataProvider)
-		if err != nil {
-			return nil, err
-		}
+		defaultLevel = parseWithMetadata(defaultLevel, metadataProvider)
 		level, err := levelFromString(defaultLevel)
 		if err != nil {
 			return nil, err
@@ -72,10 +63,7 @@ func getDefaults(getConfigValue func(string) string, metadataProvider MetadataPr
 	defaultPayload := getConfigValue(keyDefaultPayload)
 	if len(defaultPayload) > 0 {
 		var err error
-		defaultPayload, err = parseWithMetadata(defaultPayload, metadataProvider)
-		if err != nil {
-			return nil, err
-		}
+		defaultPayload = parseWithMetadata(defaultPayload, metadataProvider)
 		payload, err := payloadFromString(defaultPayload)
 		if err != nil {
 			return nil, err
@@ -101,27 +89,12 @@ func getParseKeys(getConfigValue func(string) string, metadataProvider MetadataP
 		keyResourceID    = "resource_id"
 	)
 
-	level, err := parseWithMetadata(getConfigValue(keyLevelKey), metadataProvider)
-	if err != nil {
-		return nil, err
-	}
-	message, err := parseWithMetadata(getConfigValue(keyMessageKey), metadataProvider)
-	if err != nil {
-		return nil, err
-	}
-	messageTag, err := parseWithMetadata(getConfigValue(keyMessageTagKey), metadataProvider)
-	if err != nil {
-		return nil, err
-	}
+	level := parseWithMetadata(getConfigValue(keyLevelKey), metadataProvider)
+	message := parseWithMetadata(getConfigValue(keyMessageKey), metadataProvider)
+	messageTag := parseWithMetadata(getConfigValue(keyMessageTagKey), metadataProvider)
 
-	resourceType, err := parseWithMetadata(getConfigValue(keyResourceType), metadataProvider)
-	if err != nil {
-		return nil, err
-	}
-	resourceID, err := parseWithMetadata(getConfigValue(keyResourceID), metadataProvider)
-	if err != nil {
-		return nil, err
-	}
+	resourceType := parseWithMetadata(getConfigValue(keyResourceType), metadataProvider)
+	resourceID := parseWithMetadata(getConfigValue(keyResourceID), metadataProvider)
 
 	return &parseKeys{
 		level:        level,
