@@ -47,7 +47,7 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 	if err != nil {
 		return nil, resource{}, fmt.Errorf("failed to parse resource type: %s", err.Error())
 	}
-	resourceID, err := pk.resourceType.parse(record)
+	resourceID, err := pk.resourceID.parse(record)
 	if err != nil {
 		return nil, resource{}, fmt.Errorf("failed to parse resource ID: %s", err.Error())
 	}
