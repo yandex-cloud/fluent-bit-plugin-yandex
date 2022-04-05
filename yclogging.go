@@ -11,6 +11,8 @@ import (
 
 	"C"
 
+	plugin2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/plugin"
+
 	"github.com/fluent/fluent-bit-go/output"
 )
 
@@ -24,43 +26,42 @@ func FLBPluginRegister(def unsafe.Pointer) int {
 func FLBPluginInit(plugin unsafe.Pointer) int {
 	fmt.Println("yc-logging: init")
 
-	impl := new(pluginImpl)
-	code, err := impl.init(func(key string) string {
+	impl, err := plugin2.New(func(key string) string {
 		return getConfigKey(plugin, key)
-	}, NewCachingMetadataProvider())
+	}, plugin2.NewCachingMetadataProvider())
 	if err != nil {
 		fmt.Printf("yc-logging: init err: %s\n", err.Error())
-		return code
+		return output.FLB_ERROR
 	}
 
 	output.FLBPluginSetContext(plugin, impl)
-	return code
+	return output.FLB_OK
 }
 
 //export FLBPluginFlushCtx
 func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int {
 	tagStr := C.GoString(tag)
 
-	plugin := output.FLBPluginGetContext(ctx).(*pluginImpl)
+	plugin := output.FLBPluginGetContext(ctx).(*plugin2.Plugin)
 
 	dec := output.NewDecoder(data, int(length))
 	provider := func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
 		return output.GetRecord(dec)
 	}
-	resourceToEntries := plugin.transform(provider, tagStr)
+	resourceToEntries := plugin.Transform(provider, tagStr)
 
 	var wg sync.WaitGroup
 	resBuffer := len(resourceToEntries)
 	results := make(chan error, resBuffer)
 
 	for resource, entries := range resourceToEntries {
-		resource := resource.logEntryResource()
+		resource := resource.LogEntryResource()
 		entries := entries
 
 		wg.Add(1)
 		go func(res chan error) {
 			defer wg.Done()
-			err := plugin.write(context.Background(), entries, resource)
+			err := plugin.Write(context.Background(), entries, resource)
 			res <- err
 		}(results)
 	}
@@ -77,7 +78,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		case codes.PermissionDenied:
 			// kick client reinit
 			fmt.Printf("yc-logging: reinit on write error %s: %q\n", code.String(), err.Error())
-			if initErr := plugin.client.init(); initErr != nil {
+			if initErr := plugin.InitClient(); initErr != nil {
 				fmt.Printf("yc-logging: reinit failed: %q\n", initErr.Error())
 			} else {
 				fmt.Printf("yc-logging: reinit succeded\n")

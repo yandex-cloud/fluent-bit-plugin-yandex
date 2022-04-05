@@ -1,6 +1,7 @@
-package main
+package client
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
@@ -12,86 +13,93 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fluent/fluent-bit-go/output"
+	"github.com/yandex-cloud/go-sdk/iamkey"
+
+	"google.golang.org/grpc"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
-	"github.com/yandex-cloud/go-sdk/iamkey"
 )
 
-type nextRecordProvider func() (ret int, ts interface{}, rec map[interface{}]interface{})
+type Client struct {
+	mu     sync.RWMutex
+	writer logging.LogIngestionServiceClient
 
-type pluginImpl struct {
-	mu      sync.RWMutex
-	printMu sync.Mutex
-
-	destination *logging.Destination
-
-	defaults *logging.LogEntryDefaults
-
-	keys *parseKeys
-
-	client *client
+	Init func() error
 }
 
-func (p *pluginImpl) init(getConfigValue func(string) string, metadataProvider MetadataProvider) (int, error) {
-	*p = pluginImpl{}
+var _ logging.LogIngestionServiceClient = (*Client)(nil)
 
-	keys, err := getParseKeys(getConfigValue, metadataProvider)
-	if err != nil {
-		return output.FLB_ERROR, err
-	}
-	p.keys = keys
-
-	destination, err := getDestination(getConfigValue, metadataProvider)
-	if err != nil {
-		return output.FLB_ERROR, err
-	}
-	p.destination = destination
-
-	entryDefaults, err := getDefaults(getConfigValue, metadataProvider)
-	if err != nil {
-		return output.FLB_ERROR, err
-	}
-	p.defaults = entryDefaults
-
-	client, err := getIngestionClient(getConfigValue)
-	if err != nil {
-		return output.FLB_ERROR, err
-	}
-	p.client = client
-
-	return output.FLB_OK, nil
+func (c *Client) Write(ctx context.Context, in *logging.WriteRequest, opts ...grpc.CallOption) (*logging.WriteResponse, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.writer.Write(ctx, in, opts...)
 }
 
-func (p *pluginImpl) transform(provider nextRecordProvider, tag string) map[resource][]*logging.IncomingLogEntry {
-	resourceToEntries := make(map[resource][]*logging.IncomingLogEntry)
+func New(getConfigValue func(string) string) (*Client, error) {
+	c := new(Client)
+	c.Init = clientInit(c, getConfigValue)
+	return c, c.Init()
+}
 
-	for {
-		ret, ts, record := provider()
-		if ret != 0 {
-			break
+var (
+	PluginVersion    string
+	FluentBitVersion string
+)
+
+func clientInit(c *Client, getConfigValue func(string) string) func() error {
+	var initTime time.Time
+	return func() error {
+		c.mu.Lock()
+		defer c.mu.Unlock()
+
+		const initBackoff = 30 * time.Second
+		passed := time.Since(initTime)
+		if passed < initBackoff {
+			return fmt.Errorf("%s since last client init haven't passed, only %s", initBackoff, passed)
 		}
 
-		entry, res, err := p.entry(toTime(ts), record, tag)
+		const (
+			keyAuthorization = "authorization"
+			keyEndpoint      = "endpoint"
+			defaultEndpoint  = "api.cloud.yandex.net:443"
+		)
+
+		authorization := getConfigValue(keyAuthorization)
+		if authorization == "" {
+			return fmt.Errorf("authorization missing")
+		}
+
+		credentials, err := makeCredentials(authorization)
 		if err != nil {
-			fmt.Printf("yc-logging: could not write entry %v because of error: %s\n", record, err.Error())
-			continue
+			return err
 		}
-		entries, ok := resourceToEntries[res]
-		if ok {
-			entries = append(entries, entry)
-		} else {
-			entries = []*logging.IncomingLogEntry{entry}
+
+		endpoint := getConfigValue(keyEndpoint)
+		if endpoint == "" {
+			endpoint = defaultEndpoint
 		}
-		resourceToEntries[res] = entries
+
+		tlsConfig, err := makeTLSConfig(getConfigValue)
+		if err != nil {
+			return fmt.Errorf("error creating tls config: %s", err.Error())
+		}
+
+		sdk, err := ycsdk.Build(context.Background(),
+			ycsdk.Config{
+				Credentials: credentials,
+				Endpoint:    endpoint,
+				TLSConfig:   tlsConfig,
+			},
+			grpc.WithUserAgent(`fluent-bit-plugin-yandex/`+PluginVersion+`; fluent-bit/`+FluentBitVersion),
+		)
+		if err != nil {
+			return fmt.Errorf("error creating sdk: %s", err.Error())
+		}
+		c.writer = sdk.LogIngestion().LogIngestion()
+		initTime = time.Now()
+		return nil
 	}
-
-	return resourceToEntries
-}
-
-func (p *pluginImpl) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*logging.IncomingLogEntry, resource, error) {
-	return p.keys.entry(ts, record, tag)
 }
 
 func makeCredentials(authorization string) (ycsdk.Credentials, error) {

@@ -1,4 +1,4 @@
-package main
+package plugin
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-func (p *pluginImpl) write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
+func (p *Plugin) Write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	const batchMaxLen = 100

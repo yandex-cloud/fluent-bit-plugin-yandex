@@ -1,9 +1,7 @@
-package main
+package plugin
 
 import (
 	"testing"
-
-	"github.com/fluent/fluent-bit-go/output"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
@@ -33,8 +31,7 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 	}
 	metadataProvider := TestMetadataProvider{}
 
-	plugin := new(pluginImpl)
-	_, err := plugin.init(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "group_id"}}, plugin.destination)
@@ -69,8 +66,7 @@ func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
 		"payload":       "{}",
 	}
 
-	plugin := new(pluginImpl)
-	_, err := plugin.init(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "metadata_group_id"}}, plugin.destination)
@@ -91,8 +87,7 @@ func TestInit_FolderIDTemplated_Success(t *testing.T) {
 		"folder_id": "folder_id",
 	}
 
-	plugin := new(pluginImpl)
-	_, err := plugin.init(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder_id"}}, plugin.destination)
@@ -105,8 +100,7 @@ func TestInit_FolderIDAutodetection_Success(t *testing.T) {
 		"yandex/folder-id": "folder-id",
 	}
 
-	plugin := new(pluginImpl)
-	_, err := plugin.init(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder-id"}}, plugin.destination)
@@ -117,25 +111,49 @@ func TestInit_FolderIDAutodetection_Fail(t *testing.T) {
 	}
 	metadataProvider := TestMetadataProvider{}
 
-	plugin := new(pluginImpl)
-	code, err := plugin.init(getConfigValue, metadataProvider)
+	_, err := New(getConfigValue, metadataProvider)
 
-	assert.Equal(t, output.FLB_ERROR, code)
 	assert.NotNil(t, err)
 }
 
-var records []map[interface{}]interface{}
-var cur uint64 = 0
-var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
-	if int(cur) >= len(records) {
-		return 1, nil, nil
-	}
-	cur++
-	return 0, cur - 1, records[cur-1]
-}
-
 func TestTransform_Success(t *testing.T) {
-	records = []map[interface{}]interface{}{
+	records := []map[interface{}]interface{}{
+		{"type": "1_type", "id": "1_id", "name": 10},
+		{"type": "2_type", "id": "2_id", "name": 20},
+	}
+	var cur uint64 = 0
+	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
+		if int(cur) >= len(records) {
+			return 1, nil, nil
+		}
+		cur++
+		return 0, cur - 1, records[cur-1]
+	}
+	plugin := Plugin{
+		keys: &parseKeys{
+			resourceType: newTemplate("{type}"),
+			resourceID:   newTemplate("{id}"),
+		},
+	}
+
+	resourceToEntries := plugin.Transform(recordProvider, "tag")
+
+	assert.NotNil(t, resourceToEntries)
+	actual1 := resourceToEntries[Resource{resourceType: "1_type", resourceID: "1_id"}]
+	assert.Equal(t, 1, len(actual1))
+	actualPayload1 := actual1[0].JsonPayload.AsMap()
+	assert.Equal(t, float64(10), actualPayload1["name"])
+	assert.Equal(t, "1_type", actualPayload1["type"])
+	assert.Equal(t, "1_id", actualPayload1["id"])
+	actual2 := resourceToEntries[Resource{resourceType: "2_type", resourceID: "2_id"}]
+	assert.Equal(t, 1, len(actual2))
+	actualPayload2 := actual2[0].JsonPayload.AsMap()
+	assert.Equal(t, float64(20), actualPayload2["name"])
+	assert.Equal(t, "2_type", actualPayload2["type"])
+	assert.Equal(t, "2_id", actualPayload2["id"])
+}
+func TestTransform_IdentifyingResource_Success(t *testing.T) {
+	records := []map[interface{}]interface{}{
 		{"type": "1_type", "id": "1_id", "name": 10},
 		{"type": "1_type", "id": "2_id", "name": 20},
 		{"type": "1_type", "id": "2_id", "name": 21},
@@ -147,16 +165,24 @@ func TestTransform_Success(t *testing.T) {
 		{"type": "2_type", "id": "2_id", "name": 42},
 		{"type": "2_type", "id": "2_id", "name": 43},
 	}
-	plugin := pluginImpl{
+	var cur uint64 = 0
+	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
+		if int(cur) >= len(records) {
+			return 1, nil, nil
+		}
+		cur++
+		return 0, cur - 1, records[cur-1]
+	}
+	plugin := Plugin{
 		keys: &parseKeys{
 			resourceType: newTemplate("{type}"),
 			resourceID:   newTemplate("{id}"),
 		},
 	}
 
-	resourceToEntries := plugin.transform(recordProvider, "tag")
+	resourceToEntries := plugin.Transform(recordProvider, "tag")
 
-	expected := map[resource][]*logging.IncomingLogEntry{
+	expected := map[Resource][]*logging.IncomingLogEntry{
 		{resourceType: "1_type", resourceID: "1_id"}: {{}},
 		{resourceType: "1_type", resourceID: "2_id"}: {{}, {}},
 		{resourceType: "2_type", resourceID: "1_id"}: {{}, {}, {}},
