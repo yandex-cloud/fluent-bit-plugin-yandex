@@ -1,4 +1,4 @@
-package main
+package plugin
 
 import (
 	"context"
@@ -41,11 +41,11 @@ func (mp TestMetadataProvider) getValue(key string) (string, error) {
 	return "", fmt.Errorf("failed to get metadata value by key %q", key)
 }
 
-type CachingMetadataProvider struct {
+type cachingMetadataProvider struct {
 	cache *structpb.Struct
 }
 
-func (mp *CachingMetadataProvider) getValue(key string) (string, error) {
+func (mp *cachingMetadataProvider) getValue(key string) (string, error) {
 	if mp.cache == nil {
 		err := mp.getAllMetadata()
 		if err != nil {
@@ -66,7 +66,7 @@ func (mp *CachingMetadataProvider) getValue(key string) (string, error) {
 	return value, nil
 }
 
-func (mp *CachingMetadataProvider) getAllMetadata() error {
+func (mp *cachingMetadataProvider) getAllMetadata() error {
 	const (
 		queryParam     = "?recursive=true"
 		requestTimeout = 5 * time.Second
@@ -107,5 +107,5 @@ func (mp *CachingMetadataProvider) getAllMetadata() error {
 }
 
 func NewCachingMetadataProvider() MetadataProvider {
-	return &CachingMetadataProvider{}
+	return &cachingMetadataProvider{}
 }

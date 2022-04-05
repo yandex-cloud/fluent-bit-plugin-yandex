@@ -1,4 +1,4 @@
-package main
+package plugin
 
 import (
 	"testing"
@@ -27,7 +27,7 @@ func TestEntry_Success(t *testing.T) {
 	entry, res, err := pk.entry(ts, record, tag)
 
 	assert.Nil(t, err)
-	assert.Equal(t, resource{resourceType: "resource_type", resourceID: "resource_id"}, res)
+	assert.Equal(t, Resource{resourceType: "resource_type", resourceID: "resource_id"}, res)
 	assert.Equal(t, logging.LogLevel_INFO, entry.Level)
 	assert.Equal(t, "record_message", entry.Message)
 	assert.Equal(t, timestamppb.New(ts), entry.Timestamp)
@@ -51,7 +51,7 @@ func TestEntry_TemplatedResource_Success(t *testing.T) {
 	_, res, err := pk.entry(ts, record, "")
 
 	assert.Nil(t, err)
-	assert.Equal(t, resource{resourceType: "resource_type", resourceID: "resource_id"}, res)
+	assert.Equal(t, Resource{resourceType: "resource_type", resourceID: "resource_id"}, res)
 }
 func TestEntry_TemplatedResourceID_Fail(t *testing.T) {
 	pk := parseKeys{
