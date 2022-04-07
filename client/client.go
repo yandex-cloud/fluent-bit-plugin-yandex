@@ -36,9 +36,9 @@ func (c *Client) Write(ctx context.Context, in *logging.WriteRequest, opts ...gr
 	return c.writer.Write(ctx, in, opts...)
 }
 
-func New(getConfigValue func(string) string) (*Client, error) {
+func New(authorization string, endpoint string, CAFileName string) (*Client, error) {
 	c := new(Client)
-	c.Init = clientInit(c, getConfigValue)
+	c.Init = clientInit(c, authorization, endpoint, CAFileName)
 	return c, c.Init()
 }
 
@@ -47,7 +47,7 @@ var (
 	FluentBitVersion string
 )
 
-func clientInit(c *Client, getConfigValue func(string) string) func() error {
+func clientInit(c *Client, authorization string, endpoint string, CAFileName string) func() error {
 	var initTime time.Time
 	return func() error {
 		c.mu.Lock()
@@ -59,28 +59,12 @@ func clientInit(c *Client, getConfigValue func(string) string) func() error {
 			return fmt.Errorf("%s since last client init haven't passed, only %s", initBackoff, passed)
 		}
 
-		const (
-			keyAuthorization = "authorization"
-			keyEndpoint      = "endpoint"
-			defaultEndpoint  = "api.cloud.yandex.net:443"
-		)
-
-		authorization := getConfigValue(keyAuthorization)
-		if authorization == "" {
-			return fmt.Errorf("authorization missing")
-		}
-
 		credentials, err := makeCredentials(authorization)
 		if err != nil {
 			return err
 		}
 
-		endpoint := getConfigValue(keyEndpoint)
-		if endpoint == "" {
-			endpoint = defaultEndpoint
-		}
-
-		tlsConfig, err := makeTLSConfig(getConfigValue)
+		tlsConfig, err := makeTLSConfig(CAFileName)
 		if err != nil {
 			return fmt.Errorf("error creating tls config: %s", err.Error())
 		}
@@ -130,9 +114,7 @@ func makeCredentials(authorization string) (ycsdk.Credentials, error) {
 	}
 }
 
-func makeTLSConfig(getConfigValue func(string) string) (*tls.Config, error) {
-	const CAFileNameKey = "ca_file"
-	CAFileName := getConfigValue(CAFileNameKey)
+func makeTLSConfig(CAFileName string) (*tls.Config, error) {
 	fmt.Println("yc-logging: make TLS config")
 
 	if CAFileName != "" {

@@ -46,7 +46,13 @@ func New(getConfigValue func(string) string, metadataProvider MetadataProvider) 
 	}
 	p.defaults = entryDefaults
 
-	ingestionClient, err := client.New(getConfigValue)
+	authorization, err := getAuthorization(getConfigValue, metadataProvider)
+	if err != nil {
+		return nil, err
+	}
+	endpoint := getEndpoint(getConfigValue)
+	CAFileName := getCAFileName(getConfigValue)
+	ingestionClient, err := client.New(authorization, endpoint, CAFileName)
 	if err != nil {
 		return nil, err
 	}
