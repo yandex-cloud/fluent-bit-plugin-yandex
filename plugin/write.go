@@ -9,8 +9,8 @@ import (
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogEntry) (results chan error) {
-	resBuffer := len(resourceToEntries)
+func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogEntry) (results chan error, resBuffer int) {
+	resBuffer = len(resourceToEntries)
 	results = make(chan error, resBuffer)
 
 	for resource, entries := range resourceToEntries {
@@ -23,7 +23,7 @@ func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogE
 		}(results)
 	}
 
-	return results
+	return results, resBuffer
 }
 
 func (p *Plugin) Write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
