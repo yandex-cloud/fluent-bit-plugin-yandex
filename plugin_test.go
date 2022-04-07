@@ -27,7 +27,7 @@ func TestPlugin_Success(t *testing.T) {
 		"group_id":        "{{group_id}}",
 		"default_level":   "{{default_level}}",
 		"default_payload": "{{payload}}",
-		"authorization":   "instance-service-account",
+		"authorization":   "{{authorization}}",
 	}
 	metadataProvider := plugin.TestMetadataProvider{
 		"level":         "metadata_level",
@@ -38,6 +38,7 @@ func TestPlugin_Success(t *testing.T) {
 		"group_id":      "metadata_group_id",
 		"default_level": "INFO",
 		"payload":       "{}",
+		"authorization": "instance-service-account",
 	}
 
 	impl, err := plugin.New(getConfigValue, metadataProvider)
