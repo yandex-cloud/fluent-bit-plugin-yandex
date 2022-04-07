@@ -9,6 +9,23 @@ import (
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
+func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogEntry) (results chan error) {
+	resBuffer := len(resourceToEntries)
+	results = make(chan error, resBuffer)
+
+	for resource, entries := range resourceToEntries {
+		resource := resource.LogEntryResource()
+		entries := entries
+
+		go func(res chan error) {
+			err := p.Write(context.Background(), entries, resource)
+			res <- err
+		}(results)
+	}
+
+	return results
+}
+
 func (p *Plugin) Write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
