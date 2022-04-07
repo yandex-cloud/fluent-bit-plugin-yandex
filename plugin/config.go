@@ -97,3 +97,34 @@ func getParseKeys(getConfigValue func(string) string, metadataProvider MetadataP
 		resourceID:   newTemplate(resourceID),
 	}, nil
 }
+
+func getAuthorization(getConfigValue func(string) string, metadataProvider MetadataProvider) (string, error) {
+	const keyAuthorization = "authorization"
+
+	authorization := getConfigValue(keyAuthorization)
+	if authorization == "" {
+		return "", fmt.Errorf("authorization missing")
+	}
+
+	return parseWithMetadata(authorization, metadataProvider), nil
+}
+
+func getEndpoint(getConfigValue func(string) string) string {
+	const (
+		keyEndpoint     = "endpoint"
+		defaultEndpoint = "api.cloud.yandex.net:443"
+	)
+
+	endpoint := getConfigValue(keyEndpoint)
+	if endpoint == "" {
+		endpoint = defaultEndpoint
+	}
+
+	return endpoint
+}
+
+func getCAFileName(getConfigValue func(string) string) string {
+	const CAFileNameKey = "ca_file"
+
+	return getConfigValue(CAFileNameKey)
+}
