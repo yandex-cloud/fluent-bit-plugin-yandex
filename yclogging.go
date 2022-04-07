@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"sync"
 	"unsafe"
 
 	"google.golang.org/grpc/codes"
@@ -50,22 +48,8 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	}
 	resourceToEntries := plugin.Transform(provider, tagStr)
 
-	var wg sync.WaitGroup
 	resBuffer := len(resourceToEntries)
-	results := make(chan error, resBuffer)
-
-	for resource, entries := range resourceToEntries {
-		resource := resource.LogEntryResource()
-		entries := entries
-
-		wg.Add(1)
-		go func(res chan error) {
-			defer wg.Done()
-			err := plugin.Write(context.Background(), entries, resource)
-			res <- err
-		}(results)
-	}
-	wg.Wait()
+	results := plugin.WriteAll(resourceToEntries)
 
 	for i := 0; i < resBuffer; i++ {
 		err := <-results
