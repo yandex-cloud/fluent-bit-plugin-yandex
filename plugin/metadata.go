@@ -32,15 +32,19 @@ type MetadataProvider interface {
 }
 
 type cachingMetadataProvider struct {
-	cache *structpb.Struct
+	lastUpdate time.Time
+	cache      *structpb.Struct
 }
 
 func (mp *cachingMetadataProvider) GetValue(key string) (string, error) {
-	if mp.cache == nil {
+	const updateBackoff = 30 * time.Second
+	passed := time.Since(mp.lastUpdate)
+	if mp.cache == nil || passed < updateBackoff {
 		err := mp.getAllMetadata()
 		if err != nil {
 			return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
 		}
+		mp.lastUpdate = time.Now()
 	}
 
 	toCamel := strnaming.NewCamel()
