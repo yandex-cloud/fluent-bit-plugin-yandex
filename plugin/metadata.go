@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -32,35 +33,36 @@ type MetadataProvider interface {
 }
 
 type cachingMetadataProvider struct {
+	mu         sync.Mutex
 	lastUpdate time.Time
 	cache      *structpb.Struct
 }
 
 func (mp *cachingMetadataProvider) GetValue(key string) (string, error) {
-	const updateBackoff = 30 * time.Second
-	passed := time.Since(mp.lastUpdate)
-	if mp.cache == nil || passed < updateBackoff {
-		err := mp.getAllMetadata()
-		if err != nil {
-			return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
-		}
-		mp.lastUpdate = time.Now()
-	}
+	cache, err := mp.getAllMetadata()
 
 	toCamel := strnaming.NewCamel()
 	toCamel.WithDelimiter('-')
-
 	key = toCamel.Convert(key)
 	path := strings.Split(key, "/")
 
-	value, err := getValue(mp.cache, path)
+	value, err := getValue(cache, path)
 	if err != nil {
 		return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
 	}
 	return value, nil
 }
 
-func (mp *cachingMetadataProvider) getAllMetadata() error {
+func (mp *cachingMetadataProvider) getAllMetadata() (*structpb.Struct, error) {
+	mp.mu.Lock()
+	defer mp.mu.Unlock()
+
+	const updateBackoff = 30 * time.Second
+	passed := time.Since(mp.lastUpdate)
+	if mp.cache != nil && passed < updateBackoff {
+		return mp.cache, nil
+	}
+
 	const (
 		queryParam     = "?recursive=true"
 		requestTimeout = 5 * time.Second
@@ -71,7 +73,7 @@ func (mp *cachingMetadataProvider) getAllMetadata() error {
 	client := http.Client{}
 	req, err := http.NewRequest(http.MethodGet, urlMetadata, nil)
 	if err != nil {
-		return fmt.Errorf("could not make request to get all metadata: %s", err.Error())
+		return nil, fmt.Errorf("could not make request to get all metadata: %s", err.Error())
 	}
 	req.Header.Set("Metadata-Flavor", "Google")
 
@@ -79,25 +81,26 @@ func (mp *cachingMetadataProvider) getAllMetadata() error {
 	defer cancel()
 	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
-		return fmt.Errorf("could not get all metadata: %s", err.Error())
+		return nil, fmt.Errorf("could not get all metadata: %s", err.Error())
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request to get all metadata returned status other than OK: %s", resp.Status)
+		return nil, fmt.Errorf("request to get all metadata returned status other than OK: %s", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("response body returned by request to get all metadata read failed: %s", err.Error())
+		return nil, fmt.Errorf("response body returned by request to get all metadata read failed: %s", err.Error())
 	}
 
 	metadataStruct := new(structpb.Struct)
 	err = metadataStruct.UnmarshalJSON(body)
 	if err != nil {
-		return fmt.Errorf("could not unmarshal response body returned by request to get all metadata: %s", err.Error())
+		return nil, fmt.Errorf("could not unmarshal response body returned by request to get all metadata: %s", err.Error())
 	}
 
 	mp.cache = metadataStruct
-	return nil
+	mp.lastUpdate = time.Now()
+	return metadataStruct, nil
 }
 
 func NewCachingMetadataProvider() MetadataProvider {
