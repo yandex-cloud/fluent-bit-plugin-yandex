@@ -33,7 +33,7 @@ type MetadataProvider interface {
 }
 
 type cachingMetadataProvider struct {
-	mu         sync.Mutex
+	mu         sync.RWMutex
 	lastUpdate time.Time
 	cache      *structpb.Struct
 }
@@ -54,14 +54,14 @@ func (mp *cachingMetadataProvider) GetValue(key string) (string, error) {
 }
 
 func (mp *cachingMetadataProvider) getAllMetadata() (*structpb.Struct, error) {
-	mp.mu.Lock()
-	defer mp.mu.Unlock()
-
-	const updateBackoff = 30 * time.Second
+	const updateBackoff = time.Second
+	mp.mu.RLock()
 	passed := time.Since(mp.lastUpdate)
 	if mp.cache != nil && passed < updateBackoff {
+		defer mp.mu.RUnlock()
 		return mp.cache, nil
 	}
+	mp.mu.RUnlock()
 
 	const (
 		queryParam     = "?recursive=true"
@@ -98,8 +98,10 @@ func (mp *cachingMetadataProvider) getAllMetadata() (*structpb.Struct, error) {
 		return nil, fmt.Errorf("could not unmarshal response body returned by request to get all metadata: %s", err.Error())
 	}
 
+	mp.mu.Lock()
 	mp.cache = metadataStruct
 	mp.lastUpdate = time.Now()
+	mp.mu.Unlock()
 	return metadataStruct, nil
 }
 
