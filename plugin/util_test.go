@@ -3,6 +3,8 @@ package plugin
 import (
 	"testing"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
+
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -158,7 +160,7 @@ func TestGetValue_WithArray_OutOfBound_Fail(t *testing.T) {
 }
 
 func TestParseWithMetadata_Success(t *testing.T) {
-	var metadataProvider = TestMetadataProvider{
+	var metadataProvider = test.MetadataProvider{
 		"key": "val",
 	}
 	raw := "begin_{{key}}"
@@ -168,7 +170,7 @@ func TestParseWithMetadata_Success(t *testing.T) {
 	assert.Equal(t, "begin_val", parsed)
 }
 func TestParseWithMetadata_JSONResult_Success(t *testing.T) {
-	var metadataProvider = TestMetadataProvider{
+	var metadataProvider = test.MetadataProvider{
 		"key": "{\"first\":\"1st\",\"second\":\"2nd\"}",
 	}
 	raw := "{\"key\":{{key}}}"
@@ -178,7 +180,7 @@ func TestParseWithMetadata_JSONResult_Success(t *testing.T) {
 	assert.Equal(t, "{\"key\":{\"first\":\"1st\",\"second\":\"2nd\"}}", parsed)
 }
 func TestParseWithMetadata_SimpleJsonPayloadTemplate_Success(t *testing.T) {
-	var metadataProvider = TestMetadataProvider{
+	var metadataProvider = test.MetadataProvider{
 		"key": "val",
 	}
 	raw := "{from/json/payload}_{{key}}"
@@ -188,7 +190,7 @@ func TestParseWithMetadata_SimpleJsonPayloadTemplate_Success(t *testing.T) {
 	assert.Equal(t, "{from/json/payload}_val", parsed)
 }
 func TestParseWithMetadata_NestedJsonPayloadTemplate_Success(t *testing.T) {
-	var metadataProvider = TestMetadataProvider{
+	var metadataProvider = test.MetadataProvider{
 		"key": "val",
 	}
 	raw := "{from/json/payload/{{key}}}"
@@ -198,7 +200,7 @@ func TestParseWithMetadata_NestedJsonPayloadTemplate_Success(t *testing.T) {
 	assert.Equal(t, "{from/json/payload/val}", parsed)
 }
 func TestParseWithMetadata_DefaultValue_Success(t *testing.T) {
-	var metadataProvider = TestMetadataProvider{}
+	var metadataProvider = test.MetadataProvider{}
 	raw := "{{key}}_end"
 
 	parsed := parseWithMetadata(raw, metadataProvider)
@@ -206,7 +208,7 @@ func TestParseWithMetadata_DefaultValue_Success(t *testing.T) {
 	assert.Equal(t, "_end", parsed)
 }
 func TestParseWithMetadata_DefinedDefaultValue_Success(t *testing.T) {
-	var metadataProvider = TestMetadataProvider{}
+	var metadataProvider = test.MetadataProvider{}
 	raw := "{{key:default}}_end"
 
 	parsed := parseWithMetadata(raw, metadataProvider)

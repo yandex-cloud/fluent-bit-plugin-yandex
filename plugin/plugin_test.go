@@ -3,6 +3,8 @@ package plugin
 import (
 	"testing"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -29,7 +31,7 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 		"default_payload": "{}",
 		"authorization":   "instance-service-account",
 	}
-	metadataProvider := TestMetadataProvider{}
+	metadataProvider := test.MetadataProvider{}
 
 	plugin, err := New(getConfigValue, metadataProvider)
 
@@ -55,7 +57,7 @@ func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
 		"default_payload": "{{payload}}",
 		"authorization":   "{{authorization}}",
 	}
-	metadataProvider := TestMetadataProvider{
+	metadataProvider := test.MetadataProvider{
 		"level":         "metadata_level",
 		"message":       "metadata_message",
 		"tag":           "metadata_tag",
@@ -84,7 +86,7 @@ func TestInit_FolderIDTemplated_Success(t *testing.T) {
 		"folder_id":     "{{folder_id}}",
 		"authorization": "instance-service-account",
 	}
-	metadataProvider := TestMetadataProvider{
+	metadataProvider := test.MetadataProvider{
 		"folder_id": "folder_id",
 	}
 
@@ -97,7 +99,7 @@ func TestInit_FolderIDAutodetection_Success(t *testing.T) {
 	configMap = map[string]string{
 		"authorization": "instance-service-account",
 	}
-	metadataProvider := TestMetadataProvider{
+	metadataProvider := test.MetadataProvider{
 		"yandex/folder-id": "folder-id",
 	}
 
@@ -110,7 +112,7 @@ func TestInit_FolderIDAutodetection_Fail(t *testing.T) {
 	configMap = map[string]string{
 		"authorization": "instance-service-account",
 	}
-	metadataProvider := TestMetadataProvider{}
+	metadataProvider := test.MetadataProvider{}
 
 	_, err := New(getConfigValue, metadataProvider)
 

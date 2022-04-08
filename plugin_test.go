@@ -4,6 +4,8 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/plugin"
 )
@@ -29,7 +31,7 @@ func TestPlugin_Success(t *testing.T) {
 		"default_payload": "{{payload}}",
 		"authorization":   "{{authorization}}",
 	}
-	metadataProvider := plugin.TestMetadataProvider{
+	metadataProvider := test.MetadataProvider{
 		"level":         "metadata_level",
 		"message":       "metadata_message",
 		"tag":           "metadata_tag",
