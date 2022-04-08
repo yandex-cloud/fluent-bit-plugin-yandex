@@ -8,8 +8,8 @@ COPY . .
 RUN CGO_ENABLED=1 go build \
     -buildmode=c-shared \
     -o /yc-logging.so \
-    -ldflags "-X main.PluginVersion=${plugin_version}" \
-    -ldflags "-X main.FluentBitVersion=${fluent_bit_version}" \
+    -ldflags "-X client.PluginVersion=${plugin_version}" \
+    -ldflags "-X client.FluentBitVersion=${fluent_bit_version}" \
     .
 
 FROM fluent/fluent-bit:${fluent_bit_version} as fluent-bit
