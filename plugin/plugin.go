@@ -16,17 +16,21 @@ type Plugin struct {
 	mu      sync.RWMutex
 	printMu sync.Mutex
 
+	getConfigValue   func(string) string
+	metadataProvider MetadataProvider
+
 	destination *logging.Destination
-
-	defaults *logging.LogEntryDefaults
-
-	keys *parseKeys
+	defaults    *logging.LogEntryDefaults
+	keys        *parseKeys
 
 	client *client.Client
 }
 
 func New(getConfigValue func(string) string, metadataProvider MetadataProvider) (*Plugin, error) {
-	p := &Plugin{}
+	p := &Plugin{
+		getConfigValue:   getConfigValue,
+		metadataProvider: metadataProvider,
+	}
 
 	keys, err := getParseKeys(getConfigValue, metadataProvider)
 	if err != nil {
@@ -62,7 +66,13 @@ func New(getConfigValue func(string) string, metadataProvider MetadataProvider) 
 }
 
 func (p *Plugin) InitClient() error {
-	return p.client.Init()
+	authorization, err := getAuthorization(p.getConfigValue, p.metadataProvider)
+	if err != nil {
+		return err
+	}
+	endpoint := getEndpoint(p.getConfigValue)
+	CAFileName := getCAFileName(p.getConfigValue)
+	return p.client.Init(authorization, endpoint, CAFileName)
 }
 
 func (p *Plugin) Transform(provider nextRecordProvider, tag string) map[Resource][]*logging.IncomingLogEntry {

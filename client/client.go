@@ -26,7 +26,6 @@ type Client struct {
 	writer logging.LogIngestionServiceClient
 
 	initTime time.Time
-	Init     func() error
 }
 
 var _ logging.LogIngestionServiceClient = (*Client)(nil)
@@ -39,8 +38,7 @@ func (c *Client) Write(ctx context.Context, in *logging.WriteRequest, opts ...gr
 
 func New(authorization string, endpoint string, CAFileName string) (*Client, error) {
 	c := new(Client)
-	c.Init = clientInit(c, authorization, endpoint, CAFileName)
-	return c, c.Init()
+	return c, c.Init(authorization, endpoint, CAFileName)
 }
 
 var (
@@ -48,42 +46,40 @@ var (
 	FluentBitVersion string
 )
 
-func clientInit(c *Client, authorization string, endpoint string, CAFileName string) func() error {
-	return func() error {
-		c.mu.Lock()
-		defer c.mu.Unlock()
+func (c *Client) Init(authorization string, endpoint string, CAFileName string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-		const initBackoff = 30 * time.Second
-		passed := time.Since(c.initTime)
-		if passed < initBackoff {
-			return fmt.Errorf("%s since last client init haven't passed, only %s", initBackoff, passed)
-		}
-
-		credentials, err := makeCredentials(authorization)
-		if err != nil {
-			return err
-		}
-
-		tlsConfig, err := makeTLSConfig(CAFileName)
-		if err != nil {
-			return fmt.Errorf("error creating tls config: %s", err.Error())
-		}
-
-		sdk, err := ycsdk.Build(context.Background(),
-			ycsdk.Config{
-				Credentials: credentials,
-				Endpoint:    endpoint,
-				TLSConfig:   tlsConfig,
-			},
-			grpc.WithUserAgent(`fluent-bit-plugin-yandex/`+PluginVersion+`; fluent-bit/`+FluentBitVersion),
-		)
-		if err != nil {
-			return fmt.Errorf("error creating sdk: %s", err.Error())
-		}
-		c.writer = sdk.LogIngestion().LogIngestion()
-		c.initTime = time.Now()
-		return nil
+	const initBackoff = 30 * time.Second
+	passed := time.Since(c.initTime)
+	if passed < initBackoff {
+		return fmt.Errorf("%s since last client init haven't passed, only %s", initBackoff, passed)
 	}
+
+	credentials, err := makeCredentials(authorization)
+	if err != nil {
+		return err
+	}
+
+	tlsConfig, err := makeTLSConfig(CAFileName)
+	if err != nil {
+		return fmt.Errorf("error creating tls config: %s", err.Error())
+	}
+
+	sdk, err := ycsdk.Build(context.Background(),
+		ycsdk.Config{
+			Credentials: credentials,
+			Endpoint:    endpoint,
+			TLSConfig:   tlsConfig,
+		},
+		grpc.WithUserAgent(`fluent-bit-plugin-yandex/`+PluginVersion+`; fluent-bit/`+FluentBitVersion),
+	)
+	if err != nil {
+		return fmt.Errorf("error creating sdk: %s", err.Error())
+	}
+	c.writer = sdk.LogIngestion().LogIngestion()
+	c.initTime = time.Now()
+	return nil
 }
 
 func makeCredentials(authorization string) (ycsdk.Credentials, error) {
