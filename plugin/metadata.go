@@ -28,24 +28,14 @@ func getMetadataUrl() string {
 }
 
 type MetadataProvider interface {
-	getValue(key string) (string, error)
-}
-
-type TestMetadataProvider map[string]string
-
-func (mp TestMetadataProvider) getValue(key string) (string, error) {
-	val, ok := mp[key]
-	if ok {
-		return val, nil
-	}
-	return "", fmt.Errorf("failed to get metadata value by key %q", key)
+	GetValue(key string) (string, error)
 }
 
 type cachingMetadataProvider struct {
 	cache *structpb.Struct
 }
 
-func (mp *cachingMetadataProvider) getValue(key string) (string, error) {
+func (mp *cachingMetadataProvider) GetValue(key string) (string, error) {
 	if mp.cache == nil {
 		err := mp.getAllMetadata()
 		if err != nil {
