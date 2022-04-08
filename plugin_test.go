@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
+	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/plugin"
@@ -48,8 +49,8 @@ func TestPlugin_Success(t *testing.T) {
 	assert.Nil(t, err)
 
 	records := []map[interface{}]interface{}{
-		{"type": "1", "id": "1", "name": 10},
-		{"type": "2", "id": "2", "name": 20},
+		{"type": "1", "id": "1", "name": 10, "metadata_message": "message_10", "metadata_level": "ERROR"},
+		{"type": "2", "id": "2", "name": 20, "metadata_message": "message_20", "metadata_level": "WARN"},
 	}
 	var cur uint64 = 0
 	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
@@ -76,15 +77,23 @@ func TestPlugin_Success(t *testing.T) {
 		case "1_type":
 			assert.Equal(t, "1_id", resource.Id)
 			assert.Equal(t, 1, len(entries))
+			assert.Equal(t, int64(0), entries[0].Timestamp.Seconds)
+			assert.Equal(t, logging.LogLevel_ERROR, entries[0].Level)
+			assert.Equal(t, "message_10", entries[0].Message)
 			actualPayload := entries[0].JsonPayload.AsMap()
 			assert.Equal(t, float64(10), actualPayload["name"])
+			assert.Equal(t, "tag", actualPayload["metadata_tag"])
 			assert.Equal(t, "1", actualPayload["type"])
 			assert.Equal(t, "1", actualPayload["id"])
 		case "2_type":
 			assert.Equal(t, "2_id", resource.Id)
 			assert.Equal(t, 1, len(entries))
+			assert.Equal(t, int64(1), entries[0].Timestamp.Seconds)
+			assert.Equal(t, logging.LogLevel_WARN, entries[0].Level)
+			assert.Equal(t, "message_20", entries[0].Message)
 			actualPayload := entries[0].JsonPayload.AsMap()
 			assert.Equal(t, float64(20), actualPayload["name"])
+			assert.Equal(t, "tag", actualPayload["metadata_tag"])
 			assert.Equal(t, "2", actualPayload["type"])
 			assert.Equal(t, "2", actualPayload["id"])
 		}
