@@ -48,9 +48,9 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	}
 	resourceToEntries := plugin.Transform(provider, tagStr)
 
-	results, resBuffer := plugin.WriteAll(resourceToEntries)
+	results, resCount := plugin.WriteAll(resourceToEntries)
 
-	for i := 0; i < resBuffer; i++ {
+	for i := 0; i < resCount; i++ {
 		err := <-results
 		if err == nil {
 			continue
