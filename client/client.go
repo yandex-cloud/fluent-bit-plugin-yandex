@@ -25,7 +25,8 @@ type Client struct {
 	mu     sync.RWMutex
 	writer logging.LogIngestionServiceClient
 
-	Init func() error
+	initTime time.Time
+	Init     func() error
 }
 
 var _ logging.LogIngestionServiceClient = (*Client)(nil)
@@ -48,13 +49,12 @@ var (
 )
 
 func clientInit(c *Client, authorization string, endpoint string, CAFileName string) func() error {
-	var initTime time.Time
 	return func() error {
 		c.mu.Lock()
 		defer c.mu.Unlock()
 
 		const initBackoff = 30 * time.Second
-		passed := time.Since(initTime)
+		passed := time.Since(c.initTime)
 		if passed < initBackoff {
 			return fmt.Errorf("%s since last client init haven't passed, only %s", initBackoff, passed)
 		}
@@ -81,7 +81,7 @@ func clientInit(c *Client, authorization string, endpoint string, CAFileName str
 			return fmt.Errorf("error creating sdk: %s", err.Error())
 		}
 		c.writer = sdk.LogIngestion().LogIngestion()
-		initTime = time.Now()
+		c.initTime = time.Now()
 		return nil
 	}
 }
