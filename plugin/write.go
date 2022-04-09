@@ -40,9 +40,6 @@ func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogE
 }
 
 func (p *Plugin) write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
 	toSend := entries
 	for len(toSend) > 0 {
 		failed, err := p.client.Write(ctx, &logging.WriteRequest{
@@ -66,14 +63,12 @@ func (p *Plugin) write(ctx context.Context, entries []*logging.IncomingLogEntry,
 				codes.DeadlineExceeded:
 				toRetry = append(toRetry, toSend[idx])
 			default:
-				p.printMu.Lock()
 				// bad message, just print
 				fmt.Printf(
 					"yc-logging: bad message %q: %q\n",
 					truncate(toSend[idx].GetMessage(), 512),
 					failure.String(),
 				)
-				p.printMu.Unlock()
 			}
 		}
 		toSend = toRetry

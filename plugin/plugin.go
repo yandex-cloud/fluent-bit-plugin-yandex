@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
@@ -13,9 +12,6 @@ import (
 type nextRecordProvider func() (ret int, ts interface{}, rec map[interface{}]interface{})
 
 type Plugin struct {
-	mu      sync.RWMutex
-	printMu sync.Mutex
-
 	getConfigValue   func(string) string
 	metadataProvider MetadataProvider
 
