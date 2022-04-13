@@ -7,18 +7,20 @@ for
 
 ## Configuration parameters
 
+All configuration parameters can be templated via [metadata service](#metadata). You can define templated value as follows: `{{key:default}}` or `{{key}}` (in this case `""` used as default value). All strings matched this template will be replaced by metadata values. In `default_payload` parameter you also can use this template as a JSON value (without quotes), so that JSON struct or array will be included in default payload.
+
 | Key | Description | 
 |:---|:---|
 | `group_id`        | (_optional_) [Log group](https://cloud.yandex.ru/docs/logging/concepts/log-group) ID. Has higher priority than `folder_id`. |
 | `folder_id`       | (_optional_) Folder ID. Has lower priority than `group_id`. Can be auto-detected via [metadata service](#metadata) if `group_id` and `folder_id` are not set. |
-| `resource_type`   | (_optional_) Resource type of log entries | 
-| `resource_id`     | (_optional_) Resource id of log entries | 
-| `message_tag_key` | Key of the field to be assigned to the message tag. By default, will be skipped | 
-| `message_key`     | Key of the field, which will go to `message` attribute of LogEntry | 
-| `level_key`       | Key of the field, which contains log level, optional |
-| `default_level`   | (_optional_) Default level for messages, i.e., `INFO` |
-| `default_payload` | (_optional_) String with default JSON payload for entries (will be merged together with custom entry payload). You can define templated value as follows: `{{key:default}}` or `{{key}}`. All strings matched this template will be replaced by metadata values found via [metadata service](#metadata). You also can use this template as a JSON value (without quotes), so that JSON struct or array will be included in default payload. |
-| `authorization`   | see [Authorization](#authorization) section below |
+| `resource_type`   | (_optional_) Resource type of log entries. Can be templated via entry payload as follows: `{entry/json/path}`. | 
+| `resource_id`     | (_optional_) Resource id of log entries. Can be templated via entry payload as follows: `{entry/json/path}`. | 
+| `message_tag_key` | Key of the field to be assigned to the message tag. By default, will be skipped. | 
+| `message_key`     | Key of the field, which will go to `message` attribute of LogEntry. | 
+| `level_key`       | Key of the field, which contains log level, optional. |
+| `default_level`   | (_optional_) Default level for messages, i.e., `INFO`. |
+| `default_payload` | (_optional_) String with default JSON payload for entries (will be merged together with custom entry payload). |
+| `authorization`   | See [Authorization](#authorization) section below. |
 
 ### Metadata
 
@@ -48,9 +50,9 @@ Example:
 [OUTPUT]
     Name            yc-logging
     Match           *
-    group_id        abcdefgh
-    resource_type   myServer
-    resource_id     3
+    group_id        abc_{{group-id}}
+    resource_type   {{resource}}_{resource/type}
+    resource_id     {resource/id}
     message_key     text
     level_key       severity
     default_level   WARN
