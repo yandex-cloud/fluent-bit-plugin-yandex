@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
@@ -47,6 +48,7 @@ func TestGetRecordValue_JSONValue_Success(t *testing.T) {
 	val, err := getRecordValue(record, path)
 
 	assert.Nil(t, err)
+	val = strings.ReplaceAll(val, " ", "") // hack
 	assert.Equal(t, "{\"first\":\"1st\",\"second\":\"2nd\"}", val)
 }
 func TestGetRecordValue_Fail(t *testing.T) {
@@ -120,6 +122,7 @@ func TestGetValue_JSONValue_Success(t *testing.T) {
 	val, err := getValue(from, path)
 
 	assert.Nil(t, err)
+	val = strings.ReplaceAll(val, " ", "") // hack
 	assert.Equal(t, "{\"first\":\"1st\",\"second\":\"2nd\"}", val)
 }
 func TestGetValue_Fail(t *testing.T) {
