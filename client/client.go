@@ -21,23 +21,28 @@ import (
 	ycsdk "github.com/yandex-cloud/go-sdk"
 )
 
-type Client struct {
+type Client interface {
+	Write(ctx context.Context, in *logging.WriteRequest, opts ...grpc.CallOption) (*logging.WriteResponse, error)
+	Init(authorization string, endpoint string, CAFileName string) error
+}
+
+type client struct {
 	mu     sync.RWMutex
 	writer logging.LogIngestionServiceClient
 
 	initTime time.Time
 }
 
-var _ logging.LogIngestionServiceClient = (*Client)(nil)
+var _ logging.LogIngestionServiceClient = (*client)(nil)
 
-func (c *Client) Write(ctx context.Context, in *logging.WriteRequest, opts ...grpc.CallOption) (*logging.WriteResponse, error) {
+func (c *client) Write(ctx context.Context, in *logging.WriteRequest, opts ...grpc.CallOption) (*logging.WriteResponse, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.writer.Write(ctx, in, opts...)
 }
 
-func New(authorization string, endpoint string, CAFileName string) (*Client, error) {
-	c := new(Client)
+func New(authorization string, endpoint string, CAFileName string) (Client, error) {
+	c := new(client)
 	return c, c.Init(authorization, endpoint, CAFileName)
 }
 
@@ -46,7 +51,7 @@ var (
 	FluentBitVersion string
 )
 
-func (c *Client) Init(authorization string, endpoint string, CAFileName string) error {
+func (c *client) Init(authorization string, endpoint string, CAFileName string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

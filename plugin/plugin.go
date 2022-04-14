@@ -19,7 +19,7 @@ type Plugin struct {
 	defaults    *logging.LogEntryDefaults
 	keys        *parseKeys
 
-	client *client.Client
+	client client.Client
 }
 
 func New(getConfigValue func(string) string, metadataProvider MetadataProvider) (*Plugin, error) {
