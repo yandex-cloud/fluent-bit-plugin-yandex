@@ -30,7 +30,7 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	fmt.Println("yc-logging: init")
 
 	getConfigValue := func(key string) string {
-		return getConfigKey(plugin, key)
+		return config.GetKey(plugin, key)
 	}
 	metadataProvider := metadata.NewCachingMetadataProvider()
 
