@@ -34,8 +34,9 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 		"authorization":   "instance-service-account",
 	}
 	metadataProvider := test.MetadataProvider{}
+	client := &test.Client{}
 
-	plugin, err := New(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "group_id"}}, plugin.destination)
@@ -70,8 +71,9 @@ func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
 		"payload":       "{}",
 		"authorization": "instance-service-account",
 	}
+	client := &test.Client{}
 
-	plugin, err := New(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "metadata_group_id"}}, plugin.destination)
@@ -91,8 +93,9 @@ func TestInit_FolderIDTemplated_Success(t *testing.T) {
 	metadataProvider := test.MetadataProvider{
 		"folder_id": "folder_id",
 	}
+	client := &test.Client{}
 
-	plugin, err := New(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder_id"}}, plugin.destination)
@@ -104,8 +107,9 @@ func TestInit_FolderIDAutodetection_Success(t *testing.T) {
 	metadataProvider := test.MetadataProvider{
 		"yandex/folder-id": "folder-id",
 	}
+	client := &test.Client{}
 
-	plugin, err := New(getConfigValue, metadataProvider)
+	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
 	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder-id"}}, plugin.destination)
@@ -115,8 +119,9 @@ func TestInit_FolderIDAutodetection_Fail(t *testing.T) {
 		"authorization": "instance-service-account",
 	}
 	metadataProvider := test.MetadataProvider{}
+	client := &test.Client{}
 
-	_, err := New(getConfigValue, metadataProvider)
+	_, err := New(getConfigValue, metadataProvider, client)
 
 	assert.NotNil(t, err)
 }
