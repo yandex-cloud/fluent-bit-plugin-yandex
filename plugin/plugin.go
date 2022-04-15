@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
@@ -13,7 +17,7 @@ type nextRecordProvider func() (ret int, ts interface{}, rec map[interface{}]int
 
 type Plugin struct {
 	getConfigValue   func(string) string
-	metadataProvider MetadataProvider
+	metadataProvider metadata.MetadataProvider
 
 	destination *logging.Destination
 	defaults    *logging.LogEntryDefaults
@@ -22,16 +26,13 @@ type Plugin struct {
 	client client.Client
 }
 
-func New(getConfigValue func(string) string, metadataProvider MetadataProvider) (*Plugin, error) {
+func New(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider) (*Plugin, error) {
 	p := &Plugin{
 		getConfigValue:   getConfigValue,
 		metadataProvider: metadataProvider,
 	}
 
-	keys, err := getParseKeys(getConfigValue, metadataProvider)
-	if err != nil {
-		return nil, err
-	}
+	keys := getParseKeys(getConfigValue, metadataProvider)
 	p.keys = keys
 
 	destination, err := getDestination(getConfigValue, metadataProvider)
@@ -46,12 +47,12 @@ func New(getConfigValue func(string) string, metadataProvider MetadataProvider) 
 	}
 	p.defaults = entryDefaults
 
-	authorization, err := getAuthorization(getConfigValue, metadataProvider)
+	authorization, err := config.GetAuthorization(getConfigValue, metadataProvider)
 	if err != nil {
 		return nil, err
 	}
-	endpoint := getEndpoint(getConfigValue)
-	CAFileName := getCAFileName(getConfigValue)
+	endpoint := config.GetEndpoint(getConfigValue)
+	CAFileName := config.GetCAFileName(getConfigValue)
 	ingestionClient, err := client.New(authorization, endpoint, CAFileName)
 	if err != nil {
 		return nil, err
@@ -62,12 +63,12 @@ func New(getConfigValue func(string) string, metadataProvider MetadataProvider) 
 }
 
 func (p *Plugin) InitClient() error {
-	authorization, err := getAuthorization(p.getConfigValue, p.metadataProvider)
+	authorization, err := config.GetAuthorization(p.getConfigValue, p.metadataProvider)
 	if err != nil {
 		return err
 	}
-	endpoint := getEndpoint(p.getConfigValue)
-	CAFileName := getCAFileName(p.getConfigValue)
+	endpoint := config.GetEndpoint(p.getConfigValue)
+	CAFileName := config.GetCAFileName(p.getConfigValue)
 	return p.client.Init(authorization, endpoint, CAFileName)
 }
 
@@ -80,7 +81,7 @@ func (p *Plugin) Transform(provider nextRecordProvider, tag string) map[Resource
 			break
 		}
 
-		entry, res, err := p.entry(toTime(ts), record, tag)
+		entry, res, err := p.entry(util.ToTime(ts), record, tag)
 		if err != nil {
 			fmt.Printf("yc-logging: could not write entry %v because of error: %s\n", record, err.Error())
 			continue

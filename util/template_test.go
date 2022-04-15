@@ -1,4 +1,4 @@
-package plugin
+package util
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 func TestNewTemplate_Success(t *testing.T) {
 	raw := "begin_{simple}_{path/to/json/value}_end"
 
-	templ := newTemplate(raw)
+	templ := NewTemplate(raw)
 
 	format := "begin_%s_%s_end"
 	keys := [][]string{
@@ -22,7 +22,7 @@ func TestNewTemplate_Success(t *testing.T) {
 }
 
 func TestParse_Success(t *testing.T) {
-	templ := &template{
+	templ := &Template{
 		format: "begin_%s_%s_end",
 		keys: [][]string{
 			{"simple"},
@@ -36,25 +36,25 @@ func TestParse_Success(t *testing.T) {
 		},
 	}
 
-	parsed, err := templ.parse(record)
+	parsed, err := templ.Parse(record)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "begin_simple_value_path_value_end", parsed)
 }
 func TestParse_NotTemplated_Success(t *testing.T) {
-	templ := &template{
+	templ := &Template{
 		format: "begin_end",
 		keys:   [][]string{},
 	}
 	record := map[interface{}]interface{}{}
 
-	parsed, err := templ.parse(record)
+	parsed, err := templ.Parse(record)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "begin_end", parsed)
 }
 func TestParse_Fail(t *testing.T) {
-	templ := &template{
+	templ := &Template{
 		format: "begin_%s_%s_end",
 		keys: [][]string{
 			{"simple"},
@@ -66,7 +66,7 @@ func TestParse_Fail(t *testing.T) {
 		"path":   "path_value",
 	}
 
-	_, err := templ.parse(record)
+	_, err := templ.Parse(record)
 
 	assert.NotNil(t, err)
 }
