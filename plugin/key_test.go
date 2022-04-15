@@ -4,8 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -16,8 +14,8 @@ func TestEntry_Success(t *testing.T) {
 		level:        "level",
 		message:      "message",
 		messageTag:   "tag_key",
-		resourceType: util.NewTemplate("resource_type"),
-		resourceID:   util.NewTemplate("resource_id"),
+		resourceType: newTemplate("resource_type"),
+		resourceID:   newTemplate("resource_id"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{
@@ -39,8 +37,8 @@ func TestEntry_Success(t *testing.T) {
 }
 func TestEntry_TemplatedResource_Success(t *testing.T) {
 	pk := parseKeys{
-		resourceType: util.NewTemplate("{simple}"),
-		resourceID:   util.NewTemplate("resource_{json/path}"),
+		resourceType: newTemplate("{simple}"),
+		resourceID:   newTemplate("resource_{json/path}"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{
@@ -57,8 +55,8 @@ func TestEntry_TemplatedResource_Success(t *testing.T) {
 }
 func TestEntry_TemplatedResourceID_Fail(t *testing.T) {
 	pk := parseKeys{
-		resourceType: util.NewTemplate("{simple}"),
-		resourceID:   util.NewTemplate("resource_{json/path}"),
+		resourceType: newTemplate("{simple}"),
+		resourceID:   newTemplate("resource_{json/path}"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{
@@ -71,8 +69,8 @@ func TestEntry_TemplatedResourceID_Fail(t *testing.T) {
 }
 func TestEntry_TemplatedResourceType_Fail(t *testing.T) {
 	pk := parseKeys{
-		resourceType: util.NewTemplate("{simple}"),
-		resourceID:   util.NewTemplate("resource_{json/path}"),
+		resourceType: newTemplate("{simple}"),
+		resourceID:   newTemplate("resource_{json/path}"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{

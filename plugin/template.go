@@ -1,30 +1,32 @@
-package util
+package plugin
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
 )
 
-type Template struct {
+type template struct {
 	format string
 	keys   [][]string
 }
 
 var templateReg = regexp.MustCompile(`{[^{}]+}`)
 
-func (t *Template) isTemplated() bool {
+func (t *template) isTemplated() bool {
 	return len(t.keys) != 0
 }
 
-func (t *Template) Parse(record map[interface{}]interface{}) (string, error) {
+func (t *template) parse(record map[interface{}]interface{}) (string, error) {
 	if !t.isTemplated() {
 		return t.format, nil
 	}
 
 	values := make([]interface{}, 0)
 	for _, path := range t.keys {
-		value, err := getRecordValue(record, path)
+		value, err := util.GetRecordValue(record, path)
 		if err != nil {
 			return "", err
 		}
@@ -34,7 +36,7 @@ func (t *Template) Parse(record map[interface{}]interface{}) (string, error) {
 	return fmt.Sprintf(t.format, values...), nil
 }
 
-func NewTemplate(raw string) *Template {
+func newTemplate(raw string) *template {
 	format := templateReg.ReplaceAllString(raw, "%s")
 	paths := templateReg.FindAllString(raw, -1)
 
@@ -44,7 +46,7 @@ func NewTemplate(raw string) *Template {
 		keys[i] = strings.Split(p, "/")
 	}
 
-	return &Template{
+	return &template{
 		format: format,
 		keys:   keys,
 	}

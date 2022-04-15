@@ -3,8 +3,6 @@ package plugin
 import (
 	"testing"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
-
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
 
 	"github.com/stretchr/testify/assert"
@@ -45,8 +43,8 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 	assert.Equal(t, "level", plugin.keys.level)
 	assert.Equal(t, "message", plugin.keys.message)
 	assert.Equal(t, "message_tag", plugin.keys.messageTag)
-	assert.Equal(t, util.NewTemplate("resource_type"), plugin.keys.resourceType)
-	assert.Equal(t, util.NewTemplate("resource_id"), plugin.keys.resourceID)
+	assert.Equal(t, &template{"resource_type", [][]string{}}, plugin.keys.resourceType)
+	assert.Equal(t, &template{"resource_id", [][]string{}}, plugin.keys.resourceID)
 }
 func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
 	configMap = map[string]string{
@@ -82,8 +80,8 @@ func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
 	assert.Equal(t, "metadata_level", plugin.keys.level)
 	assert.Equal(t, "metadata_message", plugin.keys.message)
 	assert.Equal(t, "message_metadata_tag", plugin.keys.messageTag)
-	assert.Equal(t, util.NewTemplate("resource_metadata_type"), plugin.keys.resourceType)
-	assert.Equal(t, util.NewTemplate("resource_metadata_id"), plugin.keys.resourceID)
+	assert.Equal(t, &template{"resource_metadata_type", [][]string{}}, plugin.keys.resourceType)
+	assert.Equal(t, &template{"resource_metadata_id", [][]string{}}, plugin.keys.resourceID)
 }
 func TestInit_FolderIDTemplated_Success(t *testing.T) {
 	configMap = map[string]string{
@@ -141,8 +139,8 @@ func TestTransform_Success(t *testing.T) {
 	}
 	plugin := Plugin{
 		keys: &parseKeys{
-			resourceType: util.NewTemplate("{type}"),
-			resourceID:   util.NewTemplate("{id}"),
+			resourceType: newTemplate("{type}"),
+			resourceID:   newTemplate("{id}"),
 		},
 	}
 
@@ -185,8 +183,8 @@ func TestTransform_IdentifyingResource_Success(t *testing.T) {
 	}
 	plugin := Plugin{
 		keys: &parseKeys{
-			resourceType: util.NewTemplate("{type}"),
-			resourceID:   util.NewTemplate("{id}"),
+			resourceType: newTemplate("{type}"),
+			resourceID:   newTemplate("{id}"),
 		},
 	}
 

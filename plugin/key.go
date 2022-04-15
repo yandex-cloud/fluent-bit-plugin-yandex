@@ -32,8 +32,8 @@ type parseKeys struct {
 	level        string
 	message      string
 	messageTag   string
-	resourceType *util.Template
-	resourceID   *util.Template
+	resourceType *template
+	resourceID   *template
 }
 
 func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*loggingpb.IncomingLogEntry, Resource, error) {
@@ -45,11 +45,11 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		values[pk.messageTag] = structpb.NewStringValue(tag)
 	}
 
-	resourceType, err := pk.resourceType.Parse(record)
+	resourceType, err := pk.resourceType.parse(record)
 	if err != nil {
 		return nil, Resource{}, fmt.Errorf("failed to parse resource type: %s", err.Error())
 	}
-	resourceID, err := pk.resourceID.Parse(record)
+	resourceID, err := pk.resourceID.parse(record)
 	if err != nil {
 		return nil, Resource{}, fmt.Errorf("failed to parse resource ID: %s", err.Error())
 	}
