@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"unsafe"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
 
 	"google.golang.org/grpc/codes"
@@ -26,9 +29,23 @@ func FLBPluginRegister(def unsafe.Pointer) int {
 func FLBPluginInit(plugin unsafe.Pointer) int {
 	fmt.Println("yc-logging: init")
 
-	impl, err := plugin2.New(func(key string) string {
+	getConfigValue := func(key string) string {
 		return getConfigKey(plugin, key)
-	}, metadata.NewCachingMetadataProvider())
+	}
+	metadataProvider := metadata.NewCachingMetadataProvider()
+
+	authorization, err := config.GetAuthorization(getConfigValue, metadataProvider)
+	if err != nil {
+		return output.FLB_ERROR
+	}
+	endpoint := config.GetEndpoint(getConfigValue)
+	CAFileName := config.GetCAFileName(getConfigValue)
+	ingestionClient, err := client.New(authorization, endpoint, CAFileName)
+	if err != nil {
+		return output.FLB_ERROR
+	}
+
+	impl, err := plugin2.New(getConfigValue, metadataProvider, ingestionClient)
 	if err != nil {
 		fmt.Printf("yc-logging: init err: %s\n", err.Error())
 		return output.FLB_ERROR

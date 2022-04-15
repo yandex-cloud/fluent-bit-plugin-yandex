@@ -43,8 +43,9 @@ func TestPlugin_Success(t *testing.T) {
 		"payload":       "{}",
 		"authorization": "instance-service-account",
 	}
+	client := &test.Client{}
 
-	impl, err := plugin.New(getConfigValue, metadataProvider)
+	impl, err := plugin.New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
 

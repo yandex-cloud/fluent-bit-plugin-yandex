@@ -26,7 +26,7 @@ type Plugin struct {
 	client client.Client
 }
 
-func New(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider) (*Plugin, error) {
+func New(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider, ingestionClient client.Client) (*Plugin, error) {
 	p := &Plugin{
 		getConfigValue:   getConfigValue,
 		metadataProvider: metadataProvider,
@@ -47,16 +47,6 @@ func New(getConfigValue func(string) string, metadataProvider metadata.MetadataP
 	}
 	p.defaults = entryDefaults
 
-	authorization, err := config.GetAuthorization(getConfigValue, metadataProvider)
-	if err != nil {
-		return nil, err
-	}
-	endpoint := config.GetEndpoint(getConfigValue)
-	CAFileName := config.GetCAFileName(getConfigValue)
-	ingestionClient, err := client.New(authorization, endpoint, CAFileName)
-	if err != nil {
-		return nil, err
-	}
 	p.client = ingestionClient
 
 	return p, nil
