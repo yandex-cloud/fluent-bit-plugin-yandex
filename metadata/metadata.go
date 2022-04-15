@@ -1,4 +1,4 @@
-package plugin
+package metadata
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
 
 	"google.golang.org/protobuf/types/known/structpb"
 
@@ -46,7 +48,7 @@ func (mp *cachingMetadataProvider) GetValue(key string) (string, error) {
 	key = toCamel.Convert(key)
 	path := strings.Split(key, "/")
 
-	value, err := getValue(cache, path)
+	value, err := util.GetValue(cache, path)
 	if err != nil {
 		return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
 	}

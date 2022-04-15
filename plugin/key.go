@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
+
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -30,8 +32,8 @@ type parseKeys struct {
 	level        string
 	message      string
 	messageTag   string
-	resourceType *template
-	resourceID   *template
+	resourceType *util.Template
+	resourceID   *util.Template
 }
 
 func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*loggingpb.IncomingLogEntry, Resource, error) {
@@ -43,11 +45,11 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		values[pk.messageTag] = structpb.NewStringValue(tag)
 	}
 
-	resourceType, err := pk.resourceType.parse(record)
+	resourceType, err := pk.resourceType.Parse(record)
 	if err != nil {
 		return nil, Resource{}, fmt.Errorf("failed to parse resource type: %s", err.Error())
 	}
-	resourceID, err := pk.resourceID.parse(record)
+	resourceID, err := pk.resourceID.Parse(record)
 	if err != nil {
 		return nil, Resource{}, fmt.Errorf("failed to parse resource ID: %s", err.Error())
 	}
@@ -63,12 +65,12 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		}
 		switch key {
 		case pk.message:
-			message = toString(v)
+			message = util.ToString(v)
 		case pk.level:
-			levelName := toString(v)
-			level, _ = levelFromString(levelName)
+			levelName := util.ToString(v)
+			level, _ = util.LevelFromString(levelName)
 		default:
-			value, err := structpb.NewValue(normalize(v))
+			value, err := structpb.NewValue(util.Normalize(v))
 			if err != nil {
 				continue
 			}

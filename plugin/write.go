@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
+
 	"google.golang.org/grpc/codes"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
@@ -66,7 +68,7 @@ func (p *Plugin) write(ctx context.Context, entries []*logging.IncomingLogEntry,
 				// bad message, just print
 				fmt.Printf(
 					"yc-logging: bad message %q: %q\n",
-					truncate(toSend[idx].GetMessage(), 512),
+					util.Truncate(toSend[idx].GetMessage(), 512),
 					failure.String(),
 				)
 			}

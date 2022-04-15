@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"unsafe"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -26,7 +28,7 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 
 	impl, err := plugin2.New(func(key string) string {
 		return getConfigKey(plugin, key)
-	}, plugin2.NewCachingMetadataProvider())
+	}, metadata.NewCachingMetadataProvider())
 	if err != nil {
 		fmt.Printf("yc-logging: init err: %s\n", err.Error())
 		return output.FLB_ERROR

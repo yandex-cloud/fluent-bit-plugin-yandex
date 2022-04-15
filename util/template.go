@@ -1,4 +1,4 @@
-package plugin
+package util
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-type template struct {
+type Template struct {
 	format string
 	keys   [][]string
 }
 
 var templateReg = regexp.MustCompile(`{[^{}]+}`)
 
-func (t *template) isTemplated() bool {
+func (t *Template) isTemplated() bool {
 	return len(t.keys) != 0
 }
 
-func (t *template) parse(record map[interface{}]interface{}) (string, error) {
+func (t *Template) Parse(record map[interface{}]interface{}) (string, error) {
 	if !t.isTemplated() {
 		return t.format, nil
 	}
@@ -34,7 +34,7 @@ func (t *template) parse(record map[interface{}]interface{}) (string, error) {
 	return fmt.Sprintf(t.format, values...), nil
 }
 
-func newTemplate(raw string) *template {
+func NewTemplate(raw string) *Template {
 	format := templateReg.ReplaceAllString(raw, "%s")
 	paths := templateReg.FindAllString(raw, -1)
 
@@ -44,7 +44,7 @@ func newTemplate(raw string) *template {
 		keys[i] = strings.Split(p, "/")
 	}
 
-	return &template{
+	return &Template{
 		format: format,
 		keys:   keys,
 	}
