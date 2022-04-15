@@ -95,7 +95,7 @@ func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.
 		level:        level,
 		message:      message,
 		messageTag:   messageTag,
-		resourceType: util.NewTemplate(resourceType),
-		resourceID:   util.NewTemplate(resourceID),
+		resourceType: newTemplate(resourceType),
+		resourceID:   newTemplate(resourceID),
 	}
 }

@@ -30,7 +30,7 @@ func PayloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
-func getRecordValue(record map[interface{}]interface{}, path []string) (string, error) {
+func GetRecordValue(record map[interface{}]interface{}, path []string) (string, error) {
 	var cur interface{} = record
 	for _, p := range path {
 		switch typed := cur.(type) {

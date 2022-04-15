@@ -16,7 +16,7 @@ func TestGetRecordValue_Success(t *testing.T) {
 	}
 	path := []string{"a", "b"}
 
-	val, err := getRecordValue(record, path)
+	val, err := GetRecordValue(record, path)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
@@ -27,7 +27,7 @@ func TestGetRecordValue_WithArray_Success(t *testing.T) {
 	}
 	path := []string{"a", "0"}
 
-	val, err := getRecordValue(record, path)
+	val, err := GetRecordValue(record, path)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
@@ -43,7 +43,7 @@ func TestGetRecordValue_JSONValue_Success(t *testing.T) {
 	}
 	path := []string{"a", "b"}
 
-	val, err := getRecordValue(record, path)
+	val, err := GetRecordValue(record, path)
 
 	assert.Nil(t, err)
 	val = strings.ReplaceAll(val, " ", "") // hack
@@ -55,7 +55,7 @@ func TestGetRecordValue_Fail(t *testing.T) {
 	}
 	path := []string{"a", "b"}
 
-	_, err := getRecordValue(record, path)
+	_, err := GetRecordValue(record, path)
 
 	assert.NotNil(t, err)
 }
@@ -67,7 +67,7 @@ func TestGetRecordValue_NoSuchKey_Fail(t *testing.T) {
 	}
 	path := []string{"a", "b"}
 
-	_, err := getRecordValue(record, path)
+	_, err := GetRecordValue(record, path)
 
 	assert.NotNil(t, err)
 }
@@ -77,7 +77,7 @@ func TestGetRecordValue_WithArray_Fail(t *testing.T) {
 	}
 	path := []string{"a", "b"}
 
-	_, err := getRecordValue(record, path)
+	_, err := GetRecordValue(record, path)
 
 	assert.NotNil(t, err)
 }
@@ -87,7 +87,7 @@ func TestGetRecordValue_WithArray_OutOfBound_Fail(t *testing.T) {
 	}
 	path := []string{"a", "1"}
 
-	_, err := getRecordValue(record, path)
+	_, err := GetRecordValue(record, path)
 
 	assert.NotNil(t, err)
 }
