@@ -2,9 +2,17 @@ package config
 
 import (
 	"fmt"
+	"strings"
+	"unsafe"
+
+	"github.com/fluent/fluent-bit-go/output"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
 )
+
+func GetKey(plugin unsafe.Pointer, key string) string {
+	return strings.TrimSpace(output.FLBPluginConfigKey(plugin, key))
+}
 
 func GetAuthorization(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider) (string, error) {
 	const keyAuthorization = "authorization"
