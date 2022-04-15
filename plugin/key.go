@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
-
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -65,12 +63,12 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		}
 		switch key {
 		case pk.message:
-			message = util.ToString(v)
+			message = toString(v)
 		case pk.level:
-			levelName := util.ToString(v)
-			level, _ = util.LevelFromString(levelName)
+			levelName := toString(v)
+			level, _ = levelFromString(levelName)
 		default:
-			value, err := structpb.NewValue(util.Normalize(v))
+			value, err := structpb.NewValue(normalize(v))
 			if err != nil {
 				continue
 			}

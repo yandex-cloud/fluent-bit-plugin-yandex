@@ -14,7 +14,7 @@ func GetKey(plugin unsafe.Pointer, key string) string {
 	return strings.TrimSpace(output.FLBPluginConfigKey(plugin, key))
 }
 
-func GetAuthorization(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider) (string, error) {
+func GetAuthorization(getConfigValue func(string) string, metadataProvider metadata.Provider) (string, error) {
 	const keyAuthorization = "authorization"
 
 	authorization := getConfigValue(keyAuthorization)

@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-func getDestination(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider) (*logging.Destination, error) {
+func getDestination(getConfigValue func(string) string, metadataProvider metadata.Provider) (*logging.Destination, error) {
 	const (
 		keyFolderID         = "folder_id"
 		keyGroupID          = "group_id"
@@ -33,7 +32,7 @@ func getDestination(getConfigValue func(string) string, metadataProvider metadat
 	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
 }
 
-func getDefaults(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider) (*logging.LogEntryDefaults, error) {
+func getDefaults(getConfigValue func(string) string, metadataProvider metadata.Provider) (*logging.LogEntryDefaults, error) {
 	const (
 		keyDefaultLevel   = "default_level"
 		keyDefaultPayload = "default_payload"
@@ -46,7 +45,7 @@ func getDefaults(getConfigValue func(string) string, metadataProvider metadata.M
 	if len(defaultLevel) > 0 {
 		var err error
 		defaultLevel = metadata.Parse(defaultLevel, metadataProvider)
-		level, err := util.LevelFromString(defaultLevel)
+		level, err := levelFromString(defaultLevel)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +58,7 @@ func getDefaults(getConfigValue func(string) string, metadataProvider metadata.M
 	if len(defaultPayload) > 0 {
 		var err error
 		defaultPayload = metadata.Parse(defaultPayload, metadataProvider)
-		payload, err := util.PayloadFromString(defaultPayload)
+		payload, err := payloadFromString(defaultPayload)
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +74,7 @@ func getDefaults(getConfigValue func(string) string, metadataProvider metadata.M
 	return nil, nil
 }
 
-func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider) *parseKeys {
+func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.Provider) *parseKeys {
 	const (
 		keyLevelKey      = "level_key"
 		keyMessageKey    = "message_key"

@@ -1,4 +1,4 @@
-package util
+package plugin
 
 import (
 	"errors"
@@ -14,14 +14,14 @@ import (
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-func LevelFromString(level string) (logging.LogLevel_Level, error) {
+func levelFromString(level string) (logging.LogLevel_Level, error) {
 	if v, ok := logging.LogLevel_Level_value[strings.ToUpper(level)]; ok {
 		return logging.LogLevel_Level(v), nil
 	}
 	return logging.LogLevel_LEVEL_UNSPECIFIED, fmt.Errorf("bad level: %q", level)
 }
 
-func PayloadFromString(payload string) (*structpb.Struct, error) {
+func payloadFromString(payload string) (*structpb.Struct, error) {
 	result := new(structpb.Struct)
 	err := result.UnmarshalJSON([]byte(payload))
 	if err != nil {
@@ -30,7 +30,7 @@ func PayloadFromString(payload string) (*structpb.Struct, error) {
 	return result, nil
 }
 
-func GetRecordValue(record map[interface{}]interface{}, path []string) (string, error) {
+func getRecordValue(record map[interface{}]interface{}, path []string) (string, error) {
 	var cur interface{} = record
 	for _, p := range path {
 		switch typed := cur.(type) {
@@ -55,9 +55,9 @@ func GetRecordValue(record map[interface{}]interface{}, path []string) (string, 
 
 	switch cur.(type) {
 	case string, []byte:
-		return ToString(cur), nil
+		return toString(cur), nil
 	default:
-		value, err := structpb.NewValue(Normalize(cur))
+		value, err := structpb.NewValue(normalize(cur))
 		if err != nil {
 			return "", fmt.Errorf("failed to create protobuf value to marshal JSON: %s", err.Error())
 		}
@@ -69,41 +69,7 @@ func GetRecordValue(record map[interface{}]interface{}, path []string) (string, 
 	}
 }
 
-func GetValue(from *structpb.Struct, path []string) (string, error) {
-	cur := structpb.NewStructValue(from)
-	for _, p := range path {
-		switch cur.GetKind().(type) {
-		case *structpb.Value_StructValue:
-			cur = cur.GetStructValue().GetFields()[p]
-		case *structpb.Value_ListValue:
-			index, err := strconv.Atoi(p)
-			if err != nil {
-				return "", fmt.Errorf("incorrect path: expected number instead of %q", p)
-			}
-			if index >= len(cur.GetListValue().GetValues()) {
-				return "", fmt.Errorf("incorrect path: index %q out of bound", p)
-			}
-			cur = cur.GetListValue().GetValues()[index]
-		default:
-			return "", errors.New("incorrect path")
-		}
-	}
-	if cur == nil {
-		return "", errors.New("incorrect path")
-	}
-
-	if _, ok := cur.GetKind().(*structpb.Value_StringValue); ok {
-		return cur.GetStringValue(), nil
-	}
-
-	content, err := cur.MarshalJSON()
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal JSON: %s", err.Error())
-	}
-	return string(content), nil
-}
-
-func ToString(raw interface{}) string {
+func toString(raw interface{}) string {
 	switch typed := raw.(type) {
 	case string:
 		return typed
@@ -114,7 +80,7 @@ func ToString(raw interface{}) string {
 	}
 }
 
-func ToTime(raw interface{}) time.Time {
+func toTime(raw interface{}) time.Time {
 	switch typed := raw.(type) {
 	case output.FLBTime:
 		return typed.Time
@@ -126,7 +92,7 @@ func ToTime(raw interface{}) time.Time {
 	}
 }
 
-func Normalize(raw interface{}) interface{} {
+func normalize(raw interface{}) interface{} {
 	switch typed := raw.(type) {
 	case []byte:
 		if utf8.Valid(typed) {
@@ -139,7 +105,7 @@ func Normalize(raw interface{}) interface{} {
 		}
 		valSlice := make([]interface{}, 0, len(typed))
 		for _, el := range typed {
-			valSlice = append(valSlice, Normalize(el))
+			valSlice = append(valSlice, normalize(el))
 		}
 		return valSlice
 	case map[interface{}]interface{}:
@@ -151,8 +117,8 @@ func Normalize(raw interface{}) interface{} {
 		}
 		valMap := make(map[string]interface{}, len(typed))
 		for key, val := range typed {
-			if keyStr, ok := Normalize(key).(string); ok {
-				valMap[keyStr] = Normalize(val)
+			if keyStr, ok := normalize(key).(string); ok {
+				valMap[keyStr] = normalize(val)
 			}
 		}
 		return valMap
@@ -161,8 +127,8 @@ func Normalize(raw interface{}) interface{} {
 	}
 }
 
-// Truncate requires maxLen to be >= 3 (for '...')
-func Truncate(str string, maxLen int) string {
+// truncate requires maxLen to be >= 3 (for '...')
+func truncate(str string, maxLen int) string {
 	if len(str) <= maxLen {
 		return str
 	}

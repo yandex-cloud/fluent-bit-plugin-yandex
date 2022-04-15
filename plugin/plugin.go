@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
-
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
 
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
@@ -17,7 +15,7 @@ type nextRecordProvider func() (ret int, ts interface{}, rec map[interface{}]int
 
 type Plugin struct {
 	getConfigValue   func(string) string
-	metadataProvider metadata.MetadataProvider
+	metadataProvider metadata.Provider
 
 	destination *logging.Destination
 	defaults    *logging.LogEntryDefaults
@@ -26,7 +24,7 @@ type Plugin struct {
 	client client.Client
 }
 
-func New(getConfigValue func(string) string, metadataProvider metadata.MetadataProvider, ingestionClient client.Client) (*Plugin, error) {
+func New(getConfigValue func(string) string, metadataProvider metadata.Provider, ingestionClient client.Client) (*Plugin, error) {
 	p := &Plugin{
 		getConfigValue:   getConfigValue,
 		metadataProvider: metadataProvider,
@@ -71,7 +69,7 @@ func (p *Plugin) Transform(provider nextRecordProvider, tag string) map[Resource
 			break
 		}
 
-		entry, res, err := p.entry(util.ToTime(ts), record, tag)
+		entry, res, err := p.entry(toTime(ts), record, tag)
 		if err != nil {
 			fmt.Printf("yc-logging: could not write entry %v because of error: %s\n", record, err.Error())
 			continue

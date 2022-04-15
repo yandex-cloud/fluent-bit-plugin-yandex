@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
 )
 
 type template struct {
@@ -26,7 +24,7 @@ func (t *template) parse(record map[interface{}]interface{}) (string, error) {
 
 	values := make([]interface{}, 0)
 	for _, path := range t.keys {
-		value, err := util.GetRecordValue(record, path)
+		value, err := getRecordValue(record, path)
 		if err != nil {
 			return "", err
 		}

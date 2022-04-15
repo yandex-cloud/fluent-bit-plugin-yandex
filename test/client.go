@@ -10,8 +10,14 @@ import (
 type Client struct{}
 
 func (c *Client) Write(ctx context.Context, in *logging.WriteRequest, opts ...grpc.CallOption) (*logging.WriteResponse, error) {
+	_ = ctx
+	_ = in
+	_ = opts
 	return nil, nil
 }
 func (c *Client) Init(authorization string, endpoint string, CAFileName string) error {
+	_ = authorization
+	_ = endpoint
+	_ = CAFileName
 	return nil
 }
