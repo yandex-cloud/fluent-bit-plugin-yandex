@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/util"
-
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/startdusk/strnaming"
@@ -30,17 +28,17 @@ func getMetadataUrl() string {
 	return metadataEndpoint + urlSuffix
 }
 
-type MetadataProvider interface {
+type Provider interface {
 	GetValue(key string) (string, error)
 }
 
-type cachingMetadataProvider struct {
+type cachingProvider struct {
 	mu         sync.RWMutex
 	lastUpdate time.Time
 	cache      *structpb.Struct
 }
 
-func (mp *cachingMetadataProvider) GetValue(key string) (string, error) {
+func (mp *cachingProvider) GetValue(key string) (string, error) {
 	cache, err := mp.getAllMetadata()
 
 	toCamel := strnaming.NewCamel()
@@ -48,14 +46,14 @@ func (mp *cachingMetadataProvider) GetValue(key string) (string, error) {
 	key = toCamel.Convert(key)
 	path := strings.Split(key, "/")
 
-	value, err := util.GetValue(cache, path)
+	value, err := getValue(cache, path)
 	if err != nil {
 		return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
 	}
 	return value, nil
 }
 
-func (mp *cachingMetadataProvider) getAllMetadata() (*structpb.Struct, error) {
+func (mp *cachingProvider) getAllMetadata() (*structpb.Struct, error) {
 	const updateBackoff = time.Second
 	mp.mu.RLock()
 	passed := time.Since(mp.lastUpdate)
@@ -107,6 +105,6 @@ func (mp *cachingMetadataProvider) getAllMetadata() (*structpb.Struct, error) {
 	return metadataStruct, nil
 }
 
-func NewCachingMetadataProvider() MetadataProvider {
-	return &cachingMetadataProvider{}
+func NewCachingProvider() Provider {
+	return &cachingProvider{}
 }

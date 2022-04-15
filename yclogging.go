@@ -32,7 +32,7 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	getConfigValue := func(key string) string {
 		return config.GetKey(plugin, key)
 	}
-	metadataProvider := metadata.NewCachingMetadataProvider()
+	metadataProvider := metadata.NewCachingProvider()
 
 	authorization, err := config.GetAuthorization(getConfigValue, metadataProvider)
 	if err != nil {
