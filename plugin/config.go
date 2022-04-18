@@ -3,11 +3,12 @@ package plugin
 import (
 	"fmt"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
-func getDestination(getConfigValue func(string) string, metadataProvider metadata.Provider) (*logging.Destination, error) {
+func getDestination(getConfigValue func(string) string, metadataProvider metadata.Provider) (*model.Destination, error) {
 	const (
 		keyFolderID         = "folder_id"
 		keyGroupID          = "group_id"
@@ -16,12 +17,12 @@ func getDestination(getConfigValue func(string) string, metadataProvider metadat
 
 	if groupID := getConfigValue(keyGroupID); len(groupID) > 0 {
 		groupID = metadata.Parse(groupID, metadataProvider)
-		return &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: groupID}}, nil
+		return &model.Destination{LogGroupID: groupID}, nil
 	}
 
 	if folderID := getConfigValue(keyFolderID); len(folderID) > 0 {
 		folderID = metadata.Parse(folderID, metadataProvider)
-		return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderID}}, nil
+		return &model.Destination{FolderID: folderID}, nil
 	}
 
 	folderId, err := metadataProvider.GetValue(metadataKeyFolderID)
@@ -29,29 +30,24 @@ func getDestination(getConfigValue func(string) string, metadataProvider metadat
 		return nil, err
 	}
 
-	return &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: folderId}}, nil
+	return &model.Destination{FolderID: folderId}, nil
 }
 
-func getDefaults(getConfigValue func(string) string, metadataProvider metadata.Provider) (*logging.LogEntryDefaults, error) {
+func getDefaults(getConfigValue func(string) string, metadataProvider metadata.Provider) (*model.Defaults, error) {
 	const (
 		keyDefaultLevel   = "default_level"
 		keyDefaultPayload = "default_payload"
 	)
 
-	entryDefaults := new(logging.LogEntryDefaults)
+	entryDefaults := new(model.Defaults)
 	haveDefaults := false
 
 	defaultLevel := getConfigValue(keyDefaultLevel)
 	if len(defaultLevel) > 0 {
-		var err error
 		defaultLevel = metadata.Parse(defaultLevel, metadataProvider)
-		level, err := levelFromString(defaultLevel)
-		if err != nil {
-			return nil, err
-		}
-		entryDefaults.Level = level
+		entryDefaults.Level = defaultLevel
 		haveDefaults = true
-		fmt.Printf("yc-logging: will use %s as default level\n", level.String())
+		fmt.Printf("yc-logging: will use %s as default level\n", defaultLevel)
 	}
 
 	defaultPayload := getConfigValue(keyDefaultPayload)
@@ -62,7 +58,7 @@ func getDefaults(getConfigValue func(string) string, metadataProvider metadata.P
 		if err != nil {
 			return nil, err
 		}
-		entryDefaults.JsonPayload = payload
+		entryDefaults.JSONPayload = payload
 		haveDefaults = true
 		data, _ := payload.MarshalJSON()
 		fmt.Printf("yc-logging: will default payload:\n%s\n", string(data))

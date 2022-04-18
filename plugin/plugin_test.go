@@ -3,6 +3,8 @@ package plugin
 import (
 	"testing"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
 
 	"github.com/stretchr/testify/assert"
@@ -37,9 +39,9 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "group_id"}}, plugin.destination)
-	assert.Equal(t, logging.LogLevel_INFO, plugin.defaults.Level)
-	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JsonPayload.Fields)
+	assert.Equal(t, &model.Destination{LogGroupID: "group_id"}, plugin.destination)
+	assert.Equal(t, "INFO", plugin.defaults.Level)
+	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JSONPayload.Fields)
 	assert.Equal(t, "level", plugin.keys.level)
 	assert.Equal(t, "message", plugin.keys.message)
 	assert.Equal(t, "message_tag", plugin.keys.messageTag)
@@ -74,9 +76,9 @@ func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
 	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_LogGroupId{LogGroupId: "metadata_group_id"}}, plugin.destination)
-	assert.Equal(t, logging.LogLevel_INFO, plugin.defaults.Level)
-	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JsonPayload.Fields)
+	assert.Equal(t, &model.Destination{LogGroupID: "metadata_group_id"}, plugin.destination)
+	assert.Equal(t, "INFO", plugin.defaults.Level)
+	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JSONPayload.Fields)
 	assert.Equal(t, "metadata_level", plugin.keys.level)
 	assert.Equal(t, "metadata_message", plugin.keys.message)
 	assert.Equal(t, "message_metadata_tag", plugin.keys.messageTag)
@@ -96,7 +98,7 @@ func TestInit_FolderIDTemplated_Success(t *testing.T) {
 	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder_id"}}, plugin.destination)
+	assert.Equal(t, &model.Destination{FolderID: "folder_id"}, plugin.destination)
 }
 func TestInit_FolderIDAutodetection_Success(t *testing.T) {
 	configMap = map[string]string{
@@ -110,7 +112,7 @@ func TestInit_FolderIDAutodetection_Success(t *testing.T) {
 	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &logging.Destination{Destination: &logging.Destination_FolderId{FolderId: "folder-id"}}, plugin.destination)
+	assert.Equal(t, &model.Destination{FolderID: "folder-id"}, plugin.destination)
 }
 func TestInit_FolderIDAutodetection_Fail(t *testing.T) {
 	configMap = map[string]string{
@@ -147,15 +149,15 @@ func TestTransform_Success(t *testing.T) {
 	resourceToEntries := plugin.Transform(recordProvider, "tag")
 
 	assert.NotNil(t, resourceToEntries)
-	actual1 := resourceToEntries[Resource{resourceType: "1_type", resourceID: "1_id"}]
+	actual1 := resourceToEntries[model.Resource{Type: "1_type", ID: "1_id"}]
 	assert.Equal(t, 1, len(actual1))
-	actualPayload1 := actual1[0].JsonPayload.AsMap()
+	actualPayload1 := actual1[0].JSONPayload.AsMap()
 	assert.Equal(t, float64(10), actualPayload1["name"])
 	assert.Equal(t, "1_type", actualPayload1["type"])
 	assert.Equal(t, "1_id", actualPayload1["id"])
-	actual2 := resourceToEntries[Resource{resourceType: "2_type", resourceID: "2_id"}]
+	actual2 := resourceToEntries[model.Resource{Type: "2_type", ID: "2_id"}]
 	assert.Equal(t, 1, len(actual2))
-	actualPayload2 := actual2[0].JsonPayload.AsMap()
+	actualPayload2 := actual2[0].JSONPayload.AsMap()
 	assert.Equal(t, float64(20), actualPayload2["name"])
 	assert.Equal(t, "2_type", actualPayload2["type"])
 	assert.Equal(t, "2_id", actualPayload2["id"])
@@ -190,11 +192,11 @@ func TestTransform_IdentifyingResource_Success(t *testing.T) {
 
 	resourceToEntries := plugin.Transform(recordProvider, "tag")
 
-	expected := map[Resource][]*logging.IncomingLogEntry{
-		{resourceType: "1_type", resourceID: "1_id"}: {{}},
-		{resourceType: "1_type", resourceID: "2_id"}: {{}, {}},
-		{resourceType: "2_type", resourceID: "1_id"}: {{}, {}, {}},
-		{resourceType: "2_type", resourceID: "2_id"}: {{}, {}, {}, {}},
+	expected := map[model.Resource][]*logging.IncomingLogEntry{
+		{Type: "1_type", ID: "1_id"}: {{}},
+		{Type: "1_type", ID: "2_id"}: {{}, {}},
+		{Type: "2_type", ID: "1_id"}: {{}, {}, {}},
+		{Type: "2_type", ID: "2_id"}: {{}, {}, {}, {}},
 	}
 	assert.NotNil(t, resourceToEntries)
 	assert.Equal(t, len(expected), len(resourceToEntries))

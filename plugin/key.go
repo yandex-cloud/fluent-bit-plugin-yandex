@@ -4,27 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+
 	"google.golang.org/protobuf/types/known/structpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
-
-	loggingpb "github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
-
-type Resource struct {
-	resourceType string
-	resourceID   string
-}
-
-func (rk *Resource) LogEntryResource() *loggingpb.LogEntryResource {
-	var resource *loggingpb.LogEntryResource
-	if len(rk.resourceType) > 0 && len(rk.resourceID) > 0 {
-		resource = &loggingpb.LogEntryResource{
-			Type: rk.resourceType,
-			Id:   rk.resourceID,
-		}
-	}
-	return resource
-}
 
 type parseKeys struct {
 	level        string
@@ -34,9 +17,9 @@ type parseKeys struct {
 	resourceID   *template
 }
 
-func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*loggingpb.IncomingLogEntry, Resource, error) {
+func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*model.Entry, model.Resource, error) {
 	var message string
-	var level loggingpb.LogLevel_Level
+	var level string
 
 	values := make(map[string]*structpb.Value)
 	if len(pk.messageTag) > 0 {
@@ -45,15 +28,15 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 
 	resourceType, err := pk.resourceType.parse(record)
 	if err != nil {
-		return nil, Resource{}, fmt.Errorf("failed to parse resource type: %s", err.Error())
+		return nil, model.Resource{}, fmt.Errorf("failed to parse resource type: %s", err.Error())
 	}
 	resourceID, err := pk.resourceID.parse(record)
 	if err != nil {
-		return nil, Resource{}, fmt.Errorf("failed to parse resource ID: %s", err.Error())
+		return nil, model.Resource{}, fmt.Errorf("failed to parse resource ID: %s", err.Error())
 	}
-	resource := Resource{
-		resourceType: resourceType,
-		resourceID:   resourceID,
+	resource := model.Resource{
+		Type: resourceType,
+		ID:   resourceID,
 	}
 
 	for k, v := range record {
@@ -65,8 +48,7 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		case pk.message:
 			message = toString(v)
 		case pk.level:
-			levelName := toString(v)
-			level, _ = levelFromString(levelName)
+			level = toString(v)
 		default:
 			value, err := structpb.NewValue(normalize(v))
 			if err != nil {
@@ -81,10 +63,10 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 			Fields: values,
 		}
 	}
-	return &loggingpb.IncomingLogEntry{
+	return &model.Entry{
 		Level:       level,
 		Message:     message,
-		JsonPayload: payload,
-		Timestamp:   timestamppb.New(ts),
+		JSONPayload: payload,
+		Timestamp:   ts,
 	}, resource, nil
 }

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
-
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
 type nextRecordProvider func() (ret int, ts interface{}, rec map[interface{}]interface{})
@@ -17,8 +17,8 @@ type Plugin struct {
 	getConfigValue   func(string) string
 	metadataProvider metadata.Provider
 
-	destination *logging.Destination
-	defaults    *logging.LogEntryDefaults
+	destination *model.Destination
+	defaults    *model.Defaults
 	keys        *parseKeys
 
 	client client.Client
@@ -60,8 +60,8 @@ func (p *Plugin) InitClient() error {
 	return p.client.Init(authorization, endpoint, CAFileName)
 }
 
-func (p *Plugin) Transform(provider nextRecordProvider, tag string) map[Resource][]*logging.IncomingLogEntry {
-	resourceToEntries := make(map[Resource][]*logging.IncomingLogEntry)
+func (p *Plugin) Transform(provider nextRecordProvider, tag string) map[model.Resource][]*model.Entry {
+	resourceToEntries := make(map[model.Resource][]*model.Entry)
 
 	for {
 		ret, ts, record := provider()
@@ -78,7 +78,7 @@ func (p *Plugin) Transform(provider nextRecordProvider, tag string) map[Resource
 		if ok {
 			entries = append(entries, entry)
 		} else {
-			entries = []*logging.IncomingLogEntry{entry}
+			entries = []*model.Entry{entry}
 		}
 		resourceToEntries[res] = entries
 	}
@@ -86,6 +86,6 @@ func (p *Plugin) Transform(provider nextRecordProvider, tag string) map[Resource
 	return resourceToEntries
 }
 
-func (p *Plugin) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*logging.IncomingLogEntry, Resource, error) {
+func (p *Plugin) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*model.Entry, model.Resource, error) {
 	return p.keys.entry(ts, record, tag)
 }

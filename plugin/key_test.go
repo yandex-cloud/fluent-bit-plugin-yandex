@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+
 	"github.com/stretchr/testify/assert"
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestEntry_Success(t *testing.T) {
@@ -27,11 +27,11 @@ func TestEntry_Success(t *testing.T) {
 	entry, res, err := pk.entry(ts, record, tag)
 
 	assert.Nil(t, err)
-	assert.Equal(t, Resource{resourceType: "resource_type", resourceID: "resource_id"}, res)
-	assert.Equal(t, logging.LogLevel_INFO, entry.Level)
+	assert.Equal(t, model.Resource{Type: "resource_type", ID: "resource_id"}, res)
+	assert.Equal(t, "INFO", entry.Level)
 	assert.Equal(t, "record_message", entry.Message)
-	assert.Equal(t, timestamppb.New(ts), entry.Timestamp)
-	tagVal, ok := entry.JsonPayload.AsMap()["tag_key"]
+	assert.Equal(t, ts, entry.Timestamp)
+	tagVal, ok := entry.JSONPayload.AsMap()["tag_key"]
 	assert.True(t, ok)
 	assert.Equal(t, "tag", tagVal)
 }
@@ -51,7 +51,7 @@ func TestEntry_TemplatedResource_Success(t *testing.T) {
 	_, res, err := pk.entry(ts, record, "")
 
 	assert.Nil(t, err)
-	assert.Equal(t, Resource{resourceType: "resource_type", resourceID: "resource_id"}, res)
+	assert.Equal(t, model.Resource{Type: "resource_type", ID: "resource_id"}, res)
 }
 func TestEntry_TemplatedResourceID_Fail(t *testing.T) {
 	pk := parseKeys{

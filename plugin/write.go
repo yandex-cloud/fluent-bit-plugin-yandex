@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc/codes"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
 
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
+	"google.golang.org/grpc/codes"
 )
 
-func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogEntry) (results chan error, resCount int) {
+func (p *Plugin) WriteAll(resourceToEntries map[model.Resource][]*model.Entry) (results chan error, resCount int) {
 	const batchMaxLen = 100
 	resCount = 0
 	for _, entries := range resourceToEntries {
@@ -18,11 +18,11 @@ func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogE
 	results = make(chan error, resCount)
 
 	for resource, entries := range resourceToEntries {
-		resource := resource.LogEntryResource()
+		resource := resource
 		entries := entries
 
 		for len(entries) > 0 {
-			var batch []*logging.IncomingLogEntry
+			var batch []*model.Entry
 			if len(entries) > batchMaxLen {
 				batch, entries = entries[:batchMaxLen], entries[batchMaxLen:]
 			} else {
@@ -30,7 +30,7 @@ func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogE
 			}
 
 			go func(res chan error) {
-				err := p.write(context.Background(), batch, resource)
+				err := p.write(context.Background(), batch, &resource)
 				res <- err
 			}(results)
 		}
@@ -39,10 +39,10 @@ func (p *Plugin) WriteAll(resourceToEntries map[Resource][]*logging.IncomingLogE
 	return results, resCount
 }
 
-func (p *Plugin) write(ctx context.Context, entries []*logging.IncomingLogEntry, resource *logging.LogEntryResource) error {
+func (p *Plugin) write(ctx context.Context, entries []*model.Entry, resource *model.Resource) error {
 	toSend := entries
 	for len(toSend) > 0 {
-		failed, err := p.client.Write(ctx, &logging.WriteRequest{
+		failed, err := p.client.Write(ctx, &model.WriteRequest{
 			Destination: p.destination,
 			Resource:    resource,
 			Entries:     toSend,
@@ -52,8 +52,8 @@ func (p *Plugin) write(ctx context.Context, entries []*logging.IncomingLogEntry,
 			// return right away
 			return err
 		}
-		var toRetry []*logging.IncomingLogEntry
-		for idx, failure := range failed.GetErrors() {
+		var toRetry []*model.Entry
+		for idx, failure := range failed {
 			switch code := codes.Code(failure.GetCode()); code {
 			case codes.ResourceExhausted,
 				codes.FailedPrecondition,
@@ -66,7 +66,7 @@ func (p *Plugin) write(ctx context.Context, entries []*logging.IncomingLogEntry,
 				// bad message, just print
 				fmt.Printf(
 					"yc-logging: bad message %q: %q\n",
-					truncate(toSend[idx].GetMessage(), 512),
+					truncate(toSend[idx].Message, 512),
 					failure.String(),
 				)
 			}
