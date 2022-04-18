@@ -14,9 +14,11 @@ import (
 	"time"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
 	"github.com/yandex-cloud/go-sdk/iamkey"
+	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 )
 
@@ -27,17 +29,17 @@ type client struct {
 	initTime time.Time
 }
 
-var _ logging.LogIngestionServiceClient = (*client)(nil)
-
-func (c *client) Write(ctx context.Context, in *logging.WriteRequest, opts ...grpc.CallOption) (*logging.WriteResponse, error) {
+func (c *client) Write(ctx context.Context, req *model.WriteRequest, opts ...grpc.CallOption) (map[int64]*status.Status, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return c.writer.Write(ctx, in, opts...)
-}
 
-func New(authorization string, endpoint string, CAFileName string) (Client, error) {
-	c := new(client)
-	return c, c.Init(authorization, endpoint, CAFileName)
+	in := loggingWriteRequest(req)
+	res, err := c.writer.Write(ctx, in, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.GetErrors(), nil
 }
 
 func (c *client) Init(authorization string, endpoint string, CAFileName string) error {
@@ -74,6 +76,11 @@ func (c *client) Init(authorization string, endpoint string, CAFileName string) 
 	c.writer = sdk.LogIngestion().LogIngestion()
 	c.initTime = time.Now()
 	return nil
+}
+
+func New(authorization string, endpoint string, CAFileName string) (Client, error) {
+	c := new(client)
+	return c, c.Init(authorization, endpoint, CAFileName)
 }
 
 func makeCredentials(authorization string) (ycsdk.Credentials, error) {

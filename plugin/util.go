@@ -4,22 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 	"unicode/utf8"
 
 	"github.com/fluent/fluent-bit-go/output"
 	"google.golang.org/protobuf/types/known/structpb"
-
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
-
-func levelFromString(level string) (logging.LogLevel_Level, error) {
-	if v, ok := logging.LogLevel_Level_value[strings.ToUpper(level)]; ok {
-		return logging.LogLevel_Level(v), nil
-	}
-	return logging.LogLevel_LEVEL_UNSPECIFIED, fmt.Errorf("bad level: %q", level)
-}
 
 func payloadFromString(payload string) (*structpb.Struct, error) {
 	result := new(structpb.Struct)

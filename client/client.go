@@ -3,12 +3,12 @@ package client
 import (
 	"context"
 
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
-
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 
 type Client interface {
-	Write(ctx context.Context, in *logging.WriteRequest, opts ...grpc.CallOption) (*logging.WriteResponse, error)
+	Write(ctx context.Context, in *model.WriteRequest, opts ...grpc.CallOption) (map[int64]*status.Status, error)
 	Init(authorization string, endpoint string, CAFileName string) error
 }

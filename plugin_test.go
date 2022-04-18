@@ -4,11 +4,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
-	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/plugin"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
 )
 
 var configMap map[string]string
@@ -68,31 +66,31 @@ func TestPlugin_Success(t *testing.T) {
 	assert.Equal(t, 2, len(resourceToEntries))
 	types := make([]string, 0)
 	for res := range resourceToEntries {
-		types = append(types, res.LogEntryResource().Type)
+		types = append(types, res.Type)
 	}
 	sort.Strings(types)
 	assert.Equal(t, []string{"1_type", "2_type"}, types)
 	for resource, entries := range resourceToEntries {
-		resource := resource.LogEntryResource()
+		resource := resource
 		switch resource.Type {
 		case "1_type":
-			assert.Equal(t, "1_id", resource.Id)
+			assert.Equal(t, "1_id", resource.ID)
 			assert.Equal(t, 1, len(entries))
-			assert.Equal(t, int64(0), entries[0].Timestamp.Seconds)
-			assert.Equal(t, logging.LogLevel_ERROR, entries[0].Level)
+			assert.Equal(t, int64(0), entries[0].Timestamp.Unix())
+			assert.Equal(t, "ERROR", entries[0].Level)
 			assert.Equal(t, "message_10", entries[0].Message)
-			actualPayload := entries[0].JsonPayload.AsMap()
+			actualPayload := entries[0].JSONPayload.AsMap()
 			assert.Equal(t, float64(10), actualPayload["name"])
 			assert.Equal(t, "tag", actualPayload["metadata_tag"])
 			assert.Equal(t, "1", actualPayload["type"])
 			assert.Equal(t, "1", actualPayload["id"])
 		case "2_type":
-			assert.Equal(t, "2_id", resource.Id)
+			assert.Equal(t, "2_id", resource.ID)
 			assert.Equal(t, 1, len(entries))
-			assert.Equal(t, int64(1), entries[0].Timestamp.Seconds)
-			assert.Equal(t, logging.LogLevel_WARN, entries[0].Level)
+			assert.Equal(t, int64(1), entries[0].Timestamp.Unix())
+			assert.Equal(t, "WARN", entries[0].Level)
 			assert.Equal(t, "message_20", entries[0].Message)
-			actualPayload := entries[0].JsonPayload.AsMap()
+			actualPayload := entries[0].JSONPayload.AsMap()
 			assert.Equal(t, float64(20), actualPayload["name"])
 			assert.Equal(t, "tag", actualPayload["metadata_tag"])
 			assert.Equal(t, "2", actualPayload["type"])
