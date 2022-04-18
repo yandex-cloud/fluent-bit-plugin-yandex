@@ -10,6 +10,11 @@ import (
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
 )
 
+var (
+	PluginVersion    string
+	FluentBitVersion string
+)
+
 func GetKey(plugin unsafe.Pointer, key string) string {
 	return strings.TrimSpace(output.FLBPluginConfigKey(plugin, key))
 }
