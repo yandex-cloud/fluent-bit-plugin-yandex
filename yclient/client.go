@@ -1,4 +1,4 @@
-package client
+package yclient
 
 import (
 	"context"
@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	client2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
@@ -78,7 +80,7 @@ func (c *client) Init(authorization string, endpoint string, CAFileName string) 
 	return nil
 }
 
-func New(authorization string, endpoint string, CAFileName string) (Client, error) {
+func New(authorization string, endpoint string, CAFileName string) (client2.Client, error) {
 	c := new(client)
 	return c, c.Init(authorization, endpoint, CAFileName)
 }

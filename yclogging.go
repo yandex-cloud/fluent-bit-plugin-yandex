@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/yclient"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
@@ -40,7 +41,7 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	}
 	endpoint := config.GetEndpoint(getConfigValue)
 	CAFileName := config.GetCAFileName(getConfigValue)
-	ingestionClient, err := client.New(authorization, endpoint, CAFileName)
+	ingestionClient, err := yclient.New(authorization, endpoint, CAFileName)
 	if err != nil {
 		return output.FLB_ERROR
 	}
