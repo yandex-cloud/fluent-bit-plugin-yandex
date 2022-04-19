@@ -35,13 +35,23 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	}
 	metadataProvider := metadata.NewCachingProvider()
 
+	destination, err := config.GetDestination(getConfigValue, metadataProvider)
+	if err != nil {
+		return output.FLB_ERROR
+	}
+	defaults, err := config.GetDefaults(getConfigValue, metadataProvider)
+	if err != nil {
+		return output.FLB_ERROR
+	}
+
 	authorization, err := config.GetAuthorization(getConfigValue, metadataProvider)
 	if err != nil {
 		return output.FLB_ERROR
 	}
 	endpoint := config.GetEndpoint(getConfigValue)
 	CAFileName := config.GetCAFileName(getConfigValue)
-	ingestionClient, err := yclient.New(authorization, endpoint, CAFileName)
+
+	ingestionClient, err := yclient.New(destination, defaults, authorization, endpoint, CAFileName)
 	if err != nil {
 		return output.FLB_ERROR
 	}
