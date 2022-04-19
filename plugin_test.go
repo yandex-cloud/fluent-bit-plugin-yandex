@@ -25,10 +25,6 @@ func TestPlugin_Success(t *testing.T) {
 		"message_tag_key": "{{tag}}",
 		"resource_type":   "{type}_{{resource_type}}",
 		"resource_id":     "{id}_{{resource_id}}",
-		"group_id":        "{{group_id}}",
-		"default_level":   "{{default_level}}",
-		"default_payload": "{{payload}}",
-		"authorization":   "{{authorization}}",
 	}
 	metadataProvider := test.MetadataProvider{
 		"level":         "metadata_level",
@@ -36,10 +32,6 @@ func TestPlugin_Success(t *testing.T) {
 		"tag":           "metadata_tag",
 		"resource_type": "type",
 		"resource_id":   "id",
-		"group_id":      "metadata_group_id",
-		"default_level": "INFO",
-		"payload":       "{}",
-		"authorization": "instance-service-account",
 	}
 	client := &test.Client{}
 

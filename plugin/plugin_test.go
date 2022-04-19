@@ -20,17 +20,13 @@ var getConfigValue = func(key string) string {
 	return ""
 }
 
-func TestInit_AllConfig_GroupID_Success(t *testing.T) {
+func TestInit_AllConfig_Success(t *testing.T) {
 	configMap = map[string]string{
 		"level_key":       "level",
 		"message_key":     "message",
 		"message_tag_key": "message_tag",
 		"resource_type":   "resource_type",
 		"resource_id":     "resource_id",
-		"group_id":        "group_id",
-		"default_level":   "INFO",
-		"default_payload": "{}",
-		"authorization":   "instance-service-account",
 	}
 	metadataProvider := test.MetadataProvider{}
 	client := &test.Client{}
@@ -44,28 +40,20 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 	assert.Equal(t, &template{"resource_type", [][]string{}}, plugin.keys.resourceType)
 	assert.Equal(t, &template{"resource_id", [][]string{}}, plugin.keys.resourceID)
 }
-func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
+func TestInit_AllConfigTemplated_Success(t *testing.T) {
 	configMap = map[string]string{
 		"level_key":       "{{level}}",
 		"message_key":     "{{message}}",
 		"message_tag_key": "message_{{tag}}",
 		"resource_type":   "resource_{{type}}",
 		"resource_id":     "resource_{{id}}",
-		"group_id":        "{{group_id}}",
-		"default_level":   "{{default_level}}",
-		"default_payload": "{{payload}}",
-		"authorization":   "{{authorization}}",
 	}
 	metadataProvider := test.MetadataProvider{
-		"level":         "metadata_level",
-		"message":       "metadata_message",
-		"tag":           "metadata_tag",
-		"type":          "metadata_type",
-		"id":            "metadata_id",
-		"group_id":      "metadata_group_id",
-		"default_level": "INFO",
-		"payload":       "{}",
-		"authorization": "instance-service-account",
+		"level":   "metadata_level",
+		"message": "metadata_message",
+		"tag":     "metadata_tag",
+		"type":    "metadata_type",
+		"id":      "metadata_id",
 	}
 	client := &test.Client{}
 
