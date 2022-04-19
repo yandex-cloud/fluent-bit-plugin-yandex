@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	client2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
@@ -29,13 +31,16 @@ type client struct {
 	writer logging.LogIngestionServiceClient
 
 	initTime time.Time
+
+	destination *logging.Destination
+	defaults    *logging.LogEntryDefaults
 }
 
 func (c *client) Write(ctx context.Context, req *model.WriteRequest, opts ...grpc.CallOption) (map[int64]*status.Status, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	in := loggingWriteRequest(req)
+	in := c.loggingWriteRequest(req)
 	res, err := c.writer.Write(ctx, in, opts...)
 	if err != nil {
 		return nil, err
@@ -80,8 +85,44 @@ func (c *client) Init(authorization string, endpoint string, CAFileName string) 
 	return nil
 }
 
-func New(authorization string, endpoint string, CAFileName string) (client2.Client, error) {
+func (c *client) loggingWriteRequest(req *model.WriteRequest) *logging.WriteRequest {
+	var resource *logging.LogEntryResource
+	if len(req.Resource.Type) > 0 || len(req.Resource.ID) > 0 {
+		resource = &logging.LogEntryResource{
+			Type: req.Resource.Type,
+			Id:   req.Resource.ID,
+		}
+	}
+
+	entries := make([]*logging.IncomingLogEntry, 0)
+	for _, entry := range req.Entries {
+		level, _ := levelFromString(entry.Level)
+		entries = append(entries, &logging.IncomingLogEntry{
+			Level:       level,
+			Message:     entry.Message,
+			JsonPayload: entry.JSONPayload,
+			Timestamp:   timestamppb.New(entry.Timestamp),
+		})
+	}
+
+	return &logging.WriteRequest{
+		Destination: c.destination,
+		Resource:    resource,
+		Entries:     entries,
+		Defaults:    c.defaults,
+	}
+}
+
+func New(destination *model.Destination, defaults *model.Defaults, authorization string, endpoint string, CAFileName string) (client2.Client, error) {
 	c := new(client)
+
+	c.destination = loggingDestination(destination)
+	loggingDefaults, err := logEntryDefaults(defaults)
+	if err != nil {
+		return nil, err
+	}
+	c.defaults = loggingDefaults
+
 	return c, c.Init(authorization, endpoint, CAFileName)
 }
 

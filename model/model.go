@@ -7,10 +7,8 @@ import (
 )
 
 type WriteRequest struct {
-	Destination *Destination
-	Resource    *Resource
-	Entries     []*Entry
-	Defaults    *Defaults
+	Resource *Resource
+	Entries  []*Entry
 }
 
 type Destination struct {

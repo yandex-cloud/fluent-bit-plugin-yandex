@@ -43,10 +43,8 @@ func (p *Plugin) write(ctx context.Context, entries []*model.Entry, resource *mo
 	toSend := entries
 	for len(toSend) > 0 {
 		failed, err := p.client.Write(ctx, &model.WriteRequest{
-			Destination: p.destination,
-			Resource:    resource,
-			Entries:     toSend,
-			Defaults:    p.defaults,
+			Resource: resource,
+			Entries:  toSend,
 		})
 		if err != nil {
 			// return right away

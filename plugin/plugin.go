@@ -17,9 +17,7 @@ type Plugin struct {
 	getConfigValue   func(string) string
 	metadataProvider metadata.Provider
 
-	destination *model.Destination
-	defaults    *model.Defaults
-	keys        *parseKeys
+	keys *parseKeys
 
 	client client.Client
 }
@@ -32,18 +30,6 @@ func New(getConfigValue func(string) string, metadataProvider metadata.Provider,
 
 	keys := getParseKeys(getConfigValue, metadataProvider)
 	p.keys = keys
-
-	destination, err := getDestination(getConfigValue, metadataProvider)
-	if err != nil {
-		return nil, err
-	}
-	p.destination = destination
-
-	entryDefaults, err := getDefaults(getConfigValue, metadataProvider)
-	if err != nil {
-		return nil, err
-	}
-	p.defaults = entryDefaults
 
 	p.client = ingestionClient
 

@@ -11,15 +11,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func payloadFromString(payload string) (*structpb.Struct, error) {
-	result := new(structpb.Struct)
-	err := result.UnmarshalJSON([]byte(payload))
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
 func getRecordValue(record map[interface{}]interface{}, path []string) (string, error) {
 	var cur interface{} = record
 	for _, p := range path {

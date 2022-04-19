@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var configMap map[string]string
@@ -39,9 +38,6 @@ func TestInit_AllConfig_GroupID_Success(t *testing.T) {
 	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &model.Destination{LogGroupID: "group_id"}, plugin.destination)
-	assert.Equal(t, "INFO", plugin.defaults.Level)
-	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JSONPayload.Fields)
 	assert.Equal(t, "level", plugin.keys.level)
 	assert.Equal(t, "message", plugin.keys.message)
 	assert.Equal(t, "message_tag", plugin.keys.messageTag)
@@ -76,54 +72,11 @@ func TestInit_AllConfigTemplated_GroupID_Success(t *testing.T) {
 	plugin, err := New(getConfigValue, metadataProvider, client)
 
 	assert.Nil(t, err)
-	assert.Equal(t, &model.Destination{LogGroupID: "metadata_group_id"}, plugin.destination)
-	assert.Equal(t, "INFO", plugin.defaults.Level)
-	assert.Equal(t, map[string]*structpb.Value{}, plugin.defaults.JSONPayload.Fields)
 	assert.Equal(t, "metadata_level", plugin.keys.level)
 	assert.Equal(t, "metadata_message", plugin.keys.message)
 	assert.Equal(t, "message_metadata_tag", plugin.keys.messageTag)
 	assert.Equal(t, &template{"resource_metadata_type", [][]string{}}, plugin.keys.resourceType)
 	assert.Equal(t, &template{"resource_metadata_id", [][]string{}}, plugin.keys.resourceID)
-}
-func TestInit_FolderIDTemplated_Success(t *testing.T) {
-	configMap = map[string]string{
-		"folder_id":     "{{folder_id}}",
-		"authorization": "instance-service-account",
-	}
-	metadataProvider := test.MetadataProvider{
-		"folder_id": "folder_id",
-	}
-	client := &test.Client{}
-
-	plugin, err := New(getConfigValue, metadataProvider, client)
-
-	assert.Nil(t, err)
-	assert.Equal(t, &model.Destination{FolderID: "folder_id"}, plugin.destination)
-}
-func TestInit_FolderIDAutodetection_Success(t *testing.T) {
-	configMap = map[string]string{
-		"authorization": "instance-service-account",
-	}
-	metadataProvider := test.MetadataProvider{
-		"yandex/folder-id": "folder-id",
-	}
-	client := &test.Client{}
-
-	plugin, err := New(getConfigValue, metadataProvider, client)
-
-	assert.Nil(t, err)
-	assert.Equal(t, &model.Destination{FolderID: "folder-id"}, plugin.destination)
-}
-func TestInit_FolderIDAutodetection_Fail(t *testing.T) {
-	configMap = map[string]string{
-		"authorization": "instance-service-account",
-	}
-	metadataProvider := test.MetadataProvider{}
-	client := &test.Client{}
-
-	_, err := New(getConfigValue, metadataProvider, client)
-
-	assert.NotNil(t, err)
 }
 
 func TestTransform_Success(t *testing.T) {
