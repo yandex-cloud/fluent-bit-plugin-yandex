@@ -24,7 +24,7 @@ func loggingWriteRequest(req *model.WriteRequest) *logging.WriteRequest {
 	}
 
 	var resource *logging.LogEntryResource
-	if len(req.Resource.Type) > 0 && len(req.Resource.ID) > 0 {
+	if len(req.Resource.Type) > 0 || len(req.Resource.ID) > 0 {
 		resource = &logging.LogEntryResource{
 			Type: req.Resource.Type,
 			Id:   req.Resource.ID,
