@@ -42,7 +42,9 @@ func logEntryDefaults(from *model.Defaults) (*logging.LogEntryDefaults, error) {
 	if from.JSONPayload != nil {
 		defaults.JsonPayload = from.JSONPayload
 		data, _ := from.JSONPayload.MarshalJSON()
-		fmt.Printf("yc-logging: will default payload:\n%s\n", string(data))
+		if data != nil {
+			fmt.Printf("yc-logging: will default payload:\n%s\n", string(data))
+		}
 	}
 
 	return defaults, nil
