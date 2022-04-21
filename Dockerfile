@@ -3,13 +3,15 @@ ARG fluent_bit_version=1.8.6
 ARG golang_version=1.16.7
 
 FROM golang:${golang_version} as builder
+ARG plugin_version
+ARG fluent_bit_version
+ARG config="github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
 WORKDIR /build
 COPY . .
 RUN CGO_ENABLED=1 go build \
     -buildmode=c-shared \
     -o /yc-logging.so \
-    -ldflags "-X config.PluginVersion=${plugin_version}" \
-    -ldflags "-X config.FluentBitVersion=${fluent_bit_version}" \
+    -ldflags "-X ${config}.PluginVersion=${plugin_version} -X ${config}.FluentBitVersion=${fluent_bit_version}" \
     .
 
 FROM fluent/fluent-bit:${fluent_bit_version} as fluent-bit
