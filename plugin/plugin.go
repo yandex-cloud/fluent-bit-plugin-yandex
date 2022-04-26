@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/client"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
 )
 
 type nextRecordProvider func() (ret int, ts interface{}, rec map[interface{}]interface{})

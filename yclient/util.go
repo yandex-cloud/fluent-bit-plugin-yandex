@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 )
 

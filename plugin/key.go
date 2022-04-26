@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 
 	"google.golang.org/protobuf/types/known/structpb"
 )

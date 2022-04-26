@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
 )
 
 func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.Provider) *parseKeys {

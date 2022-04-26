@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/test"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 

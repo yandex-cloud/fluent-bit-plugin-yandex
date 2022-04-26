@@ -5,12 +5,12 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/fluent/fluent-bit-go/output"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
 )
 
 var (

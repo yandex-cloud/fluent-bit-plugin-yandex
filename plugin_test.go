@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/plugin"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/plugin"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/test"
 )
 
 var configMap map[string]string
