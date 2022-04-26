@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 
 	"google.golang.org/grpc/codes"
 )

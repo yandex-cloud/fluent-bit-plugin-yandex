@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/yclient"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/yclient"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/metadata"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"C"
 
-	plugin2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/plugin"
+	plugin2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/plugin"
 
 	"github.com/fluent/fluent-bit-go/output"
 )

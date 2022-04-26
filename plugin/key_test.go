@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -3,9 +3,9 @@ package plugin
 import (
 	"testing"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/test"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/test"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"

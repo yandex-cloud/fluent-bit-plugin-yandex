@@ -15,10 +15,10 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	client2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/client"
+	client2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/client"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/config"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
 	"github.com/yandex-cloud/go-sdk/iamkey"
