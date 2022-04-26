@@ -1,4 +1,4 @@
-module github.com/yandex-cloud/fluent-bit-plugin-yandex
+module github.com/yandex-cloud/fluent-bit-plugin-yandex/v2
 
 go 1.17
 
