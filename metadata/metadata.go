@@ -13,17 +13,16 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/startdusk/strnaming"
-	ycsdk "github.com/yandex-cloud/go-sdk"
 )
 
-func getMetadataUrl() string {
+func getMetadataUrl(instanceMetadataAddr string) string {
 	const (
 		keyMetadataUrlEnv = "YC_METADATA_URL"
 		urlSuffix         = "/computeMetadata/v1/"
 	)
 	metadataEndpoint := os.Getenv(keyMetadataUrlEnv)
 	if len(metadataEndpoint) == 0 {
-		metadataEndpoint = "http://" + ycsdk.InstanceMetadataAddr
+		metadataEndpoint = "http://" + instanceMetadataAddr
 	}
 	return metadataEndpoint + urlSuffix
 }
@@ -33,9 +32,10 @@ type Provider interface {
 }
 
 type cachingProvider struct {
-	mu         sync.RWMutex
-	lastUpdate time.Time
-	cache      *structpb.Struct
+	mu                   sync.RWMutex
+	instanceMetadataAddr string
+	lastUpdate           time.Time
+	cache                *structpb.Struct
 }
 
 func (mp *cachingProvider) GetValue(key string) (string, error) {
@@ -54,21 +54,22 @@ func (mp *cachingProvider) GetValue(key string) (string, error) {
 }
 
 func (mp *cachingProvider) getAllMetadata() (*structpb.Struct, error) {
-	const updateBackoff = time.Second
+	const (
+		updateBackoff  = time.Second
+		queryParam     = "?recursive=true"
+		requestTimeout = 5 * time.Second
+	)
+
 	mp.mu.RLock()
+
 	passed := time.Since(mp.lastUpdate)
 	if mp.cache != nil && passed < updateBackoff {
 		defer mp.mu.RUnlock()
 		return mp.cache, nil
 	}
+	urlMetadata := getMetadataUrl(mp.instanceMetadataAddr) + queryParam
+
 	mp.mu.RUnlock()
-
-	const (
-		queryParam     = "?recursive=true"
-		requestTimeout = 5 * time.Second
-	)
-
-	urlMetadata := getMetadataUrl() + queryParam
 
 	client := http.Client{}
 	req, err := http.NewRequest(http.MethodGet, urlMetadata, nil)
@@ -105,6 +106,8 @@ func (mp *cachingProvider) getAllMetadata() (*structpb.Struct, error) {
 	return metadataStruct, nil
 }
 
-func NewCachingProvider() Provider {
-	return &cachingProvider{}
+func NewCachingProvider(instanceMetadataAddr string) Provider {
+	return &cachingProvider{
+		instanceMetadataAddr: instanceMetadataAddr,
+	}
 }
