@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"unsafe"
 
+	ycsdk "github.com/yandex-cloud/go-sdk"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/yclient"
 
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
@@ -33,7 +35,7 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	getConfigValue := func(key string) string {
 		return config.GetKey(plugin, key)
 	}
-	metadataProvider := metadata.NewCachingProvider()
+	metadataProvider := metadata.NewCachingProvider(ycsdk.InstanceMetadataAddr)
 
 	destination, err := config.GetDestination(getConfigValue, metadataProvider)
 	if err != nil {

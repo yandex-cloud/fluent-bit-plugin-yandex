@@ -5,7 +5,7 @@ ARG golang_version=1.17.8
 FROM golang:${golang_version} as builder
 ARG plugin_version
 ARG fluent_bit_version
-ARG config=github.com/yandex-cloud/fluent-bit-plugin-yandex/config
+ARG config=github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config
 WORKDIR /build
 COPY . .
 RUN CGO_ENABLED=1 go build \
