@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -15,16 +16,21 @@ import (
 	"github.com/startdusk/strnaming"
 )
 
-func getMetadataUrl(instanceMetadataAddr string) string {
+func getMetadataUrl(instanceMetadataAddr string) (*url.URL, error) {
 	const (
 		keyMetadataUrlEnv = "YC_METADATA_URL"
-		urlSuffix         = "/computeMetadata/v1/"
+		urlPath           = "/computeMetadata/v1/"
 	)
 	metadataEndpoint := os.Getenv(keyMetadataUrlEnv)
 	if len(metadataEndpoint) == 0 {
 		metadataEndpoint = "http://" + instanceMetadataAddr
 	}
-	return metadataEndpoint + urlSuffix
+	urlMetadata, err := url.Parse(metadataEndpoint)
+	if err != nil {
+		return nil, err
+	}
+	urlMetadata.Path = urlPath
+	return urlMetadata, nil
 }
 
 type Provider interface {
@@ -40,6 +46,9 @@ type cachingProvider struct {
 
 func (mp *cachingProvider) GetValue(key string) (string, error) {
 	cache, err := mp.getAllMetadata()
+	if err != nil {
+		return "", fmt.Errorf("failed to get metadata value by key%q: %s", key, err.Error())
+	}
 
 	toCamel := strnaming.NewCamel()
 	toCamel.WithDelimiter('-')
@@ -48,16 +57,17 @@ func (mp *cachingProvider) GetValue(key string) (string, error) {
 
 	value, err := getValue(cache, path)
 	if err != nil {
-		return "", fmt.Errorf("failed to get metadata value by key %q because of error: %s", key, err.Error())
+		return "", fmt.Errorf("failed to get metadata value by key %q: %s", key, err.Error())
 	}
 	return value, nil
 }
 
 func (mp *cachingProvider) getAllMetadata() (*structpb.Struct, error) {
 	const (
-		updateBackoff  = time.Second
-		queryParam     = "?recursive=true"
-		requestTimeout = 5 * time.Second
+		updateBackoff   = time.Second
+		queryParamKey   = "recursive"
+		queryParamValue = "true"
+		requestTimeout  = 5 * time.Second
 	)
 
 	mp.mu.RLock()
@@ -67,12 +77,18 @@ func (mp *cachingProvider) getAllMetadata() (*structpb.Struct, error) {
 		defer mp.mu.RUnlock()
 		return mp.cache, nil
 	}
-	urlMetadata := getMetadataUrl(mp.instanceMetadataAddr) + queryParam
+	urlMetadata, err := getMetadataUrl(mp.instanceMetadataAddr)
+	if err != nil {
+		return nil, fmt.Errorf("incorrect metadata URL: %s", err.Error())
+	}
+	q := urlMetadata.Query()
+	q.Set(queryParamKey, queryParamValue)
+	urlMetadata.RawQuery = q.Encode()
 
 	mp.mu.RUnlock()
 
 	client := http.Client{}
-	req, err := http.NewRequest(http.MethodGet, urlMetadata, nil)
+	req, err := http.NewRequest(http.MethodGet, urlMetadata.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not make request to get all metadata: %s", err.Error())
 	}
