@@ -24,6 +24,7 @@ type Resource struct {
 type Entry struct {
 	Timestamp   time.Time
 	Level       string
+	StreamName  string
 	Message     string
 	JSONPayload *structpb.Struct
 }

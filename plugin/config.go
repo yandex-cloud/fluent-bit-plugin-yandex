@@ -11,6 +11,7 @@ func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.
 		keyMessageTagKey = "message_tag_key"
 		keyResourceType  = "resource_type"
 		keyResourceID    = "resource_id"
+		keySteamName     = "stream_name"
 	)
 
 	level := metadata.Parse(getConfigValue(keyLevelKey), metadataProvider)
@@ -19,6 +20,7 @@ func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.
 
 	resourceType := metadata.Parse(getConfigValue(keyResourceType), metadataProvider)
 	resourceID := metadata.Parse(getConfigValue(keyResourceID), metadataProvider)
+	streamName := metadata.Parse(getConfigValue(keySteamName), metadataProvider)
 
 	return &parseKeys{
 		level:        level,
@@ -26,5 +28,6 @@ func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.
 		messageTag:   messageTag,
 		resourceType: newTemplate(resourceType),
 		resourceID:   newTemplate(resourceID),
+		streamName:   newTemplate(streamName),
 	}
 }

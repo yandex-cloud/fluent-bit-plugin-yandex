@@ -99,6 +99,7 @@ func (c *client) loggingWriteRequest(req *model.WriteRequest) *logging.WriteRequ
 		level, _ := levelFromString(entry.Level)
 		entries = append(entries, &logging.IncomingLogEntry{
 			Level:       level,
+			StreamName:  entry.StreamName,
 			Message:     entry.Message,
 			JsonPayload: entry.JSONPayload,
 			Timestamp:   timestamppb.New(entry.Timestamp),

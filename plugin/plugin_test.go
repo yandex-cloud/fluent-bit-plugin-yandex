@@ -27,6 +27,7 @@ func TestInit_AllConfig_Success(t *testing.T) {
 		"message_tag_key": "message_tag",
 		"resource_type":   "resource_type",
 		"resource_id":     "resource_id",
+		"stream_name":     "stream_name",
 	}
 	metadataProvider := test.MetadataProvider{}
 	client := &test.Client{}
@@ -39,6 +40,7 @@ func TestInit_AllConfig_Success(t *testing.T) {
 	assert.Equal(t, "message_tag", plugin.keys.messageTag)
 	assert.Equal(t, &template{"resource_type", [][]string{}}, plugin.keys.resourceType)
 	assert.Equal(t, &template{"resource_id", [][]string{}}, plugin.keys.resourceID)
+	assert.Equal(t, &template{"stream_name", [][]string{}}, plugin.keys.streamName)
 }
 func TestInit_AllConfigTemplated_Success(t *testing.T) {
 	configMap = map[string]string{
@@ -69,8 +71,8 @@ func TestInit_AllConfigTemplated_Success(t *testing.T) {
 
 func TestTransform_Success(t *testing.T) {
 	records := []map[interface{}]interface{}{
-		{"type": "1_type", "id": "1_id", "name": 10},
-		{"type": "2_type", "id": "2_id", "name": 20},
+		{"type": "1_type", "id": "1_id", "name": 10, "stream": "stream1"},
+		{"type": "2_type", "id": "2_id", "name": 20, "stream": "stream1"},
 	}
 	var cur uint64 = 0
 	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
@@ -84,6 +86,7 @@ func TestTransform_Success(t *testing.T) {
 		keys: &parseKeys{
 			resourceType: newTemplate("{type}"),
 			resourceID:   newTemplate("{id}"),
+			streamName:   newTemplate("{stream}"),
 		},
 	}
 
@@ -105,16 +108,16 @@ func TestTransform_Success(t *testing.T) {
 }
 func TestTransform_IdentifyingResource_Success(t *testing.T) {
 	records := []map[interface{}]interface{}{
-		{"type": "1_type", "id": "1_id", "name": 10},
-		{"type": "1_type", "id": "2_id", "name": 20},
-		{"type": "1_type", "id": "2_id", "name": 21},
-		{"type": "2_type", "id": "1_id", "name": 30},
-		{"type": "2_type", "id": "1_id", "name": 31},
-		{"type": "2_type", "id": "1_id", "name": 32},
-		{"type": "2_type", "id": "2_id", "name": 40},
-		{"type": "2_type", "id": "2_id", "name": 41},
-		{"type": "2_type", "id": "2_id", "name": 42},
-		{"type": "2_type", "id": "2_id", "name": 43},
+		{"type": "1_type", "id": "1_id", "name": 10, "stream": "stream1"},
+		{"type": "1_type", "id": "2_id", "name": 20, "stream": "stream1"},
+		{"type": "1_type", "id": "2_id", "name": 21, "stream": "stream1"},
+		{"type": "2_type", "id": "1_id", "name": 30, "stream": "stream1"},
+		{"type": "2_type", "id": "1_id", "name": 31, "stream": "stream1"},
+		{"type": "2_type", "id": "1_id", "name": 32, "stream": "stream1"},
+		{"type": "2_type", "id": "2_id", "name": 40, "stream": "stream1"},
+		{"type": "2_type", "id": "2_id", "name": 41, "stream": "stream1"},
+		{"type": "2_type", "id": "2_id", "name": 42, "stream": "stream1"},
+		{"type": "2_type", "id": "2_id", "name": 43, "stream": "stream1"},
 	}
 	var cur uint64 = 0
 	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
@@ -128,16 +131,17 @@ func TestTransform_IdentifyingResource_Success(t *testing.T) {
 		keys: &parseKeys{
 			resourceType: newTemplate("{type}"),
 			resourceID:   newTemplate("{id}"),
+			streamName:   newTemplate("{stream}"),
 		},
 	}
 
 	resourceToEntries := plugin.Transform(recordProvider, "tag")
 
 	expected := map[model.Resource][]*logging.IncomingLogEntry{
-		{Type: "1_type", ID: "1_id"}: {{}},
-		{Type: "1_type", ID: "2_id"}: {{}, {}},
-		{Type: "2_type", ID: "1_id"}: {{}, {}, {}},
-		{Type: "2_type", ID: "2_id"}: {{}, {}, {}, {}},
+		{Type: "1_type", ID: "1_id"}: {{StreamName: "stream1"}},
+		{Type: "1_type", ID: "2_id"}: {{StreamName: "stream1"}, {StreamName: "stream1"}},
+		{Type: "2_type", ID: "1_id"}: {{StreamName: "stream1"}, {StreamName: "stream1"}, {StreamName: "stream1"}},
+		{Type: "2_type", ID: "2_id"}: {{StreamName: "stream1"}, {StreamName: "stream1"}, {StreamName: "stream1"}, {StreamName: "stream1"}},
 	}
 	assert.NotNil(t, resourceToEntries)
 	assert.Equal(t, len(expected), len(resourceToEntries))

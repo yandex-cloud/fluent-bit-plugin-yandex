@@ -15,6 +15,7 @@ type parseKeys struct {
 	messageTag   string
 	resourceType *template
 	resourceID   *template
+	streamName   *template
 }
 
 func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag string) (*model.Entry, model.Resource, error) {
@@ -33,6 +34,10 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 	resourceID, err := pk.resourceID.parse(record)
 	if err != nil {
 		return nil, model.Resource{}, fmt.Errorf("failed to parse resource ID: %s", err.Error())
+	}
+	streamName, err := pk.streamName.parse(record)
+	if err != nil {
+		return nil, model.Resource{}, fmt.Errorf("failed to parse stream name: %s", err.Error())
 	}
 	resource := model.Resource{
 		Type: resourceType,
@@ -65,6 +70,7 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 	}
 	return &model.Entry{
 		Level:       level,
+		StreamName:  streamName,
 		Message:     message,
 		JSONPayload: payload,
 		Timestamp:   ts,

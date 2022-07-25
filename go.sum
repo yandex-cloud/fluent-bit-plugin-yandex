@@ -96,10 +96,10 @@ github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLY
 github.com/ugorji/go/codec v1.2.7 h1:YPXUKf7fYbp/y8xloBqZOw2qaVggbfwMlI8WM3wZUJ0=
 github.com/ugorji/go/codec v1.2.7/go.mod h1:WGN1fab3R1fzQlVQTkfxVtIBhWDRqOviHU95kRgeqEY=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=
-github.com/yandex-cloud/go-genproto v0.0.0-20220511112233-d69ecdb30a46 h1:xDrCEN8UsG7MGlzKYoG/Q7H+2Fp+1pBubVMmuIXbP64=
-github.com/yandex-cloud/go-genproto v0.0.0-20220511112233-d69ecdb30a46/go.mod h1:HEUYX/p8966tMUHHT+TsS0hF/Ca/NYwqprC5WXSDMfE=
-github.com/yandex-cloud/go-sdk v0.0.0-20220511115426-9feb5f1ee87f h1:Ek9unlbD/EY2D+v/JY5kbGR6AKH5Y5eNScp1o+BLh+c=
-github.com/yandex-cloud/go-sdk v0.0.0-20220511115426-9feb5f1ee87f/go.mod h1:lfdaCackTXJEzhnyUdx32rmE7RTA2mGc2/KCNaNl4is=
+github.com/yandex-cloud/go-genproto v0.0.0-20220718095639-7971ba320057 h1:E7Hb3za9EHWx/AiXNGjBxOPudLFSelaRtyVsvxturM4=
+github.com/yandex-cloud/go-genproto v0.0.0-20220718095639-7971ba320057/go.mod h1:HEUYX/p8966tMUHHT+TsS0hF/Ca/NYwqprC5WXSDMfE=
+github.com/yandex-cloud/go-sdk v0.0.0-20220718100739-50070cd9746e h1:p/APVZzglWfiQJY+rIPH94SgAqD7PQzoAuAvvVU0iY0=
+github.com/yandex-cloud/go-sdk v0.0.0-20220718100739-50070cd9746e/go.mod h1:NszadvtI2oAulirw9kCjAXjSL31EPqe35CbLi0g5Se8=
 go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqeYNgFYFoEGnI=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
