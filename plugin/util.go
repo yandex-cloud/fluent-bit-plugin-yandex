@@ -27,7 +27,7 @@ func getRecordValue(record map[interface{}]interface{}, path []string) (string, 
 			}
 			cur = typed[index]
 		default:
-			return "", errors.New("incorrect path")
+			return "", fmt.Errorf("incorrect path")
 		}
 	}
 	if cur == nil {

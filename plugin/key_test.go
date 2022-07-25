@@ -16,6 +16,7 @@ func TestEntry_Success(t *testing.T) {
 		messageTag:   "tag_key",
 		resourceType: newTemplate("resource_type"),
 		resourceID:   newTemplate("resource_id"),
+		streamName:   newTemplate("stream_name"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{
@@ -39,6 +40,7 @@ func TestEntry_TemplatedResource_Success(t *testing.T) {
 	pk := parseKeys{
 		resourceType: newTemplate("{simple}"),
 		resourceID:   newTemplate("resource_{json/path}"),
+		streamName:   newTemplate("stream_name"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{
@@ -57,6 +59,7 @@ func TestEntry_TemplatedResourceID_Fail(t *testing.T) {
 	pk := parseKeys{
 		resourceType: newTemplate("{simple}"),
 		resourceID:   newTemplate("resource_{json/path}"),
+		streamName:   newTemplate("stream_name"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{
@@ -71,6 +74,7 @@ func TestEntry_TemplatedResourceType_Fail(t *testing.T) {
 	pk := parseKeys{
 		resourceType: newTemplate("{simple}"),
 		resourceID:   newTemplate("resource_{json/path}"),
+		streamName:   newTemplate("stream_name"),
 	}
 	ts := time.Now()
 	record := map[interface{}]interface{}{
