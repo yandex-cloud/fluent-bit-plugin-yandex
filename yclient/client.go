@@ -17,17 +17,19 @@ import (
 
 	client2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/client"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
 	"github.com/yandex-cloud/go-sdk/iamkey"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 )
 
 type client struct {
 	mu     sync.RWMutex
+	sdk    *ycsdk.SDK
 	writer logging.LogIngestionServiceClient
 
 	initTime time.Time
@@ -59,6 +61,8 @@ func (c *client) Init(authorization string, endpoint string, CAFileName string) 
 		return fmt.Errorf("%s since last client init haven't passed, only %s", initBackoff, passed)
 	}
 
+	c.closeSDK()
+
 	credentials, err := makeCredentials(authorization)
 	if err != nil {
 		return err
@@ -69,7 +73,7 @@ func (c *client) Init(authorization string, endpoint string, CAFileName string) 
 		return fmt.Errorf("error creating tls config: %s", err.Error())
 	}
 
-	sdk, err := ycsdk.Build(context.Background(),
+	c.sdk, err = ycsdk.Build(context.Background(),
 		ycsdk.Config{
 			Credentials: credentials,
 			Endpoint:    endpoint,
@@ -80,9 +84,23 @@ func (c *client) Init(authorization string, endpoint string, CAFileName string) 
 	if err != nil {
 		return fmt.Errorf("error creating sdk: %s", err.Error())
 	}
-	c.writer = sdk.LogIngestion().LogIngestion()
+	c.writer = c.sdk.LogIngestion().LogIngestion()
 	c.initTime = time.Now()
 	return nil
+}
+
+func (c *client) closeSDK() {
+	if c.sdk == nil {
+		return
+	}
+	sdk := c.sdk
+	c.sdk = nil
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	go func() {
+		defer cancel()
+		_ = sdk.Shutdown(ctx)
+	}()
 }
 
 func (c *client) loggingWriteRequest(req *model.WriteRequest) *logging.WriteRequest {
