@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
-
 	"google.golang.org/grpc/codes"
+
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 )
 
 func (p *Plugin) WriteAll(resourceToEntries map[model.Resource][]*model.Entry) (results chan error, resCount int) {
