@@ -1,6 +1,6 @@
 ARG plugin_version=dev
-ARG fluent_bit_version=1.9.0
-ARG golang_version=1.17.8
+ARG fluent_bit_version=2.1.7
+ARG golang_version=1.20.6
 
 FROM golang:${golang_version} as builder
 ARG plugin_version

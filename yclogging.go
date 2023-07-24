@@ -1,25 +1,19 @@
 package main
 
 import (
+	"C"
 	"fmt"
 	"unsafe"
 
+	"github.com/fluent/fluent-bit-go/output"
 	ycsdk "github.com/yandex-cloud/go-sdk"
-
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/yclient"
-
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
-
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"C"
-
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
 	plugin2 "github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/plugin"
-
-	"github.com/fluent/fluent-bit-go/output"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/yclient"
 )
 
 //export FLBPluginRegister

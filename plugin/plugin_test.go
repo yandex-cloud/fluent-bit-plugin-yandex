@@ -3,22 +3,23 @@ package plugin
 import (
 	"testing"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
-
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/test"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/logging/v1"
+
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/test"
 )
 
-var configMap map[string]string
-var getConfigValue = func(key string) string {
-	val, ok := configMap[key]
-	if ok {
-		return val
+var (
+	configMap      map[string]string
+	getConfigValue = func(key string) string {
+		val, ok := configMap[key]
+		if ok {
+			return val
+		}
+		return ""
 	}
-	return ""
-}
+)
 
 func TestInit_AllConfig_Success(t *testing.T) {
 	configMap = map[string]string{
@@ -42,6 +43,7 @@ func TestInit_AllConfig_Success(t *testing.T) {
 	assert.Equal(t, &template{"resource_id", [][]string{}}, plugin.keys.resourceID)
 	assert.Equal(t, &template{"stream_name", [][]string{}}, plugin.keys.streamName)
 }
+
 func TestInit_AllConfigTemplated_Success(t *testing.T) {
 	configMap = map[string]string{
 		"level_key":       "{{level}}",
@@ -74,8 +76,8 @@ func TestTransform_Success(t *testing.T) {
 		{"type": "1_type", "id": "1_id", "name": 10, "stream": "stream1"},
 		{"type": "2_type", "id": "2_id", "name": 20, "stream": "stream1"},
 	}
-	var cur uint64 = 0
-	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
+	var cur uint64
+	recordProvider := func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
 		if int(cur) >= len(records) {
 			return 1, nil, nil
 		}
@@ -106,6 +108,7 @@ func TestTransform_Success(t *testing.T) {
 	assert.Equal(t, "2_type", actualPayload2["type"])
 	assert.Equal(t, "2_id", actualPayload2["id"])
 }
+
 func TestTransform_IdentifyingResource_Success(t *testing.T) {
 	records := []map[interface{}]interface{}{
 		{"type": "1_type", "id": "1_id", "name": 10, "stream": "stream1"},
@@ -119,8 +122,8 @@ func TestTransform_IdentifyingResource_Success(t *testing.T) {
 		{"type": "2_type", "id": "2_id", "name": 42, "stream": "stream1"},
 		{"type": "2_type", "id": "2_id", "name": 43, "stream": "stream1"},
 	}
-	var cur uint64 = 0
-	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
+	var cur uint64
+	recordProvider := func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
 		if int(cur) >= len(records) {
 			return 1, nil, nil
 		}

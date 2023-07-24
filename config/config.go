@@ -5,12 +5,11 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
+	"github.com/fluent/fluent-bit-go/output"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/fluent/fluent-bit-go/output"
-
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 )
 
 var (
@@ -39,12 +38,12 @@ func GetDestination(getConfigValue func(string) string, metadataProvider metadat
 		return &model.Destination{FolderID: folderID}, nil
 	}
 
-	folderId, err := metadataProvider.GetValue(metadataKeyFolderID)
+	folderID, err := metadataProvider.GetValue(metadataKeyFolderID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &model.Destination{FolderID: folderId}, nil
+	return &model.Destination{FolderID: folderID}, nil
 }
 
 func GetDefaults(getConfigValue func(string) string, metadataProvider metadata.Provider) (*model.Defaults, error) {

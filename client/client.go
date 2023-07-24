@@ -3,9 +3,10 @@ package client
 import (
 	"context"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 )
 
 type Client interface {

@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 )
 
 func TestEntry_Success(t *testing.T) {
@@ -36,6 +36,7 @@ func TestEntry_Success(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, "tag", tagVal)
 }
+
 func TestEntry_TemplatedResource_Success(t *testing.T) {
 	pk := parseKeys{
 		resourceType: newTemplate("{simple}"),
@@ -55,6 +56,7 @@ func TestEntry_TemplatedResource_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, model.Resource{Type: "resource_type", ID: "resource_id"}, res)
 }
+
 func TestEntry_TemplatedResourceID_Fail(t *testing.T) {
 	pk := parseKeys{
 		resourceType: newTemplate("{simple}"),
@@ -70,6 +72,7 @@ func TestEntry_TemplatedResourceID_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
+
 func TestEntry_TemplatedResourceType_Fail(t *testing.T) {
 	pk := parseKeys{
 		resourceType: newTemplate("{simple}"),

@@ -41,6 +41,7 @@ func TestParse_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "begin_simple_value_path_value_end", parsed)
 }
+
 func TestParse_NotTemplated_Success(t *testing.T) {
 	templ := &template{
 		format: "begin_end",
@@ -53,6 +54,7 @@ func TestParse_NotTemplated_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "begin_end", parsed)
 }
+
 func TestParse_Fail(t *testing.T) {
 	templ := &template{
 		format: "begin_%s_%s_end",

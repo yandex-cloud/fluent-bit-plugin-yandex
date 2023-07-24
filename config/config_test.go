@@ -4,19 +4,22 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/structpb"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/model"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/test"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
-var configMap map[string]string
-var getConfigValue = func(key string) string {
-	val, ok := configMap[key]
-	if ok {
-		return val
+var (
+	configMap      map[string]string
+	getConfigValue = func(key string) string {
+		val, ok := configMap[key]
+		if ok {
+			return val
+		}
+		return ""
 	}
-	return ""
-}
+)
 
 func TestGetDestination_GroupID_Success(t *testing.T) {
 	configMap = map[string]string{
@@ -29,6 +32,7 @@ func TestGetDestination_GroupID_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, &model.Destination{LogGroupID: "abcdef"}, destination)
 }
+
 func TestGetDestination_GroupIDTemplated_Success(t *testing.T) {
 	configMap = map[string]string{
 		"group_id": "{{group}}",
@@ -42,6 +46,7 @@ func TestGetDestination_GroupIDTemplated_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, &model.Destination{LogGroupID: "abcdef"}, destination)
 }
+
 func TestGetDestination_GroupIDFolderID_Success(t *testing.T) {
 	configMap = map[string]string{
 		"group_id":  "abcdef",
@@ -54,6 +59,7 @@ func TestGetDestination_GroupIDFolderID_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, &model.Destination{LogGroupID: "abcdef"}, destination)
 }
+
 func TestGetDestination_FolderID_Success(t *testing.T) {
 	configMap = map[string]string{
 		"folder_id": "qwerty",
@@ -65,6 +71,7 @@ func TestGetDestination_FolderID_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, &model.Destination{FolderID: "qwerty"}, destination)
 }
+
 func TestGetDestination_FolderIDTemplated_Success(t *testing.T) {
 	configMap = map[string]string{
 		"folder_id": "{{folder}}",
@@ -78,6 +85,7 @@ func TestGetDestination_FolderIDTemplated_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, &model.Destination{FolderID: "qwerty"}, destination)
 }
+
 func TestGetDestination_FolderIDAutoDetection_Success(t *testing.T) {
 	configMap = map[string]string{}
 	metadataProvider := test.MetadataProvider{
@@ -89,6 +97,7 @@ func TestGetDestination_FolderIDAutoDetection_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, &model.Destination{FolderID: "folder-id"}, destination)
 }
+
 func TestGetDestination_FolderIDAutoDetection_Fail(t *testing.T) {
 	configMap = map[string]string{}
 	metadataProvider := test.MetadataProvider{}
@@ -107,6 +116,7 @@ func TestGetDefaults_Empty_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, defaults)
 }
+
 func TestGetDefaults_LevelOnly_Success(t *testing.T) {
 	configMap = map[string]string{
 		"default_level": "INFO",
@@ -118,6 +128,7 @@ func TestGetDefaults_LevelOnly_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, &model.Defaults{Level: "INFO"}, defaults)
 }
+
 func TestGetDefaults_PayloadOnly_Success(t *testing.T) {
 	configMap = map[string]string{
 		"default_payload": "{}",
@@ -130,6 +141,7 @@ func TestGetDefaults_PayloadOnly_Success(t *testing.T) {
 	assert.Equal(t, "", defaults.Level)
 	assert.Equal(t, map[string]*structpb.Value{}, defaults.JSONPayload.Fields)
 }
+
 func TestGetDefaults_PayloadOnly_Fail(t *testing.T) {
 	configMap = map[string]string{
 		"default_payload": "{incorrect json\"",
@@ -140,6 +152,7 @@ func TestGetDefaults_PayloadOnly_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
+
 func TestGetDefaults_Success(t *testing.T) {
 	configMap = map[string]string{
 		"default_level":   "INFO",
@@ -153,6 +166,7 @@ func TestGetDefaults_Success(t *testing.T) {
 	assert.Equal(t, "INFO", defaults.Level)
 	assert.Equal(t, map[string]*structpb.Value{}, defaults.JSONPayload.Fields)
 }
+
 func TestGetDefaults_Templated_Success(t *testing.T) {
 	configMap = map[string]string{
 		"default_level":   "{{level}}",

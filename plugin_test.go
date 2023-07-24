@@ -5,18 +5,21 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/plugin"
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/test"
 )
 
-var configMap map[string]string
-var getConfigValue = func(key string) string {
-	val, ok := configMap[key]
-	if ok {
-		return val
+var (
+	configMap      map[string]string
+	getConfigValue = func(key string) string {
+		val, ok := configMap[key]
+		if ok {
+			return val
+		}
+		return ""
 	}
-	return ""
-}
+)
 
 func TestPlugin_Success(t *testing.T) {
 	configMap = map[string]string{
@@ -43,8 +46,8 @@ func TestPlugin_Success(t *testing.T) {
 		{"type": "1", "id": "1", "name": 10, "metadata_message": "message_10", "metadata_level": "ERROR"},
 		{"type": "2", "id": "2", "name": 20, "metadata_message": "message_20", "metadata_level": "WARN"},
 	}
-	var cur uint64 = 0
-	var recordProvider = func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
+	var cur uint64
+	recordProvider := func() (ret int, ts interface{}, rec map[interface{}]interface{}) {
 		if int(cur) >= len(records) {
 			return 1, nil, nil
 		}
