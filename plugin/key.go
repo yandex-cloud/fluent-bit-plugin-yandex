@@ -11,7 +11,7 @@ import (
 
 type parseKeys struct {
 	level        string
-	message      string
+	messageKeys  map[string]struct{}
 	messageTag   string
 	resourceType *template
 	resourceID   *template
@@ -49,17 +49,20 @@ func (pk *parseKeys) entry(ts time.Time, record map[interface{}]interface{}, tag
 		if !ok {
 			continue
 		}
-		switch key {
-		case pk.message:
+
+		if _, ok := pk.messageKeys[key]; ok {
 			message = toString(v)
-		case pk.level:
-			level = toString(v)
-		default:
-			value, err := structpb.NewValue(normalize(v))
-			if err != nil {
-				continue
+		} else {
+			switch key {
+			case pk.level:
+				level = toString(v)
+			default:
+				value, err := structpb.NewValue(normalize(v))
+				if err != nil {
+					continue
+				}
+				values[key] = value
 			}
-			values[key] = value
 		}
 	}
 	var payload *structpb.Struct

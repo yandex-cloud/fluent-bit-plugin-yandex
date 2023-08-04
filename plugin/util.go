@@ -68,7 +68,8 @@ func toTime(raw interface{}) time.Time {
 	case uint64:
 		return time.Unix(int64(typed), 0)
 	default:
-		fmt.Println("time provided invalid, defaulting to now.")
+		// TODO: prevent noisy logging
+		//fmt.Println("time provided invalid, defaulting to now.")
 		return time.Now()
 	}
 }

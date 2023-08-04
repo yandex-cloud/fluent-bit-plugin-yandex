@@ -2,20 +2,31 @@ package plugin
 
 import (
 	"github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/metadata"
+	"strings"
 )
 
 func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.Provider) *parseKeys {
 	const (
-		keyLevelKey      = "level_key"
-		keyMessageKey    = "message_key"
-		keyMessageTagKey = "message_tag_key"
-		keyResourceType  = "resource_type"
-		keyResourceID    = "resource_id"
-		keySteamName     = "stream_name"
+		keyLevelKey        = "level_key"
+		keyMessageKey      = "message_key"
+		keyMessageKeysList = "message_keys"
+		keyMessageTagKey   = "message_tag_key"
+		keyResourceType    = "resource_type"
+		keyResourceID      = "resource_id"
+		keySteamName       = "stream_name"
 	)
 
+	messageKeysListString := metadata.Parse(getConfigValue(keyMessageKeysList), metadataProvider)
+	if messageKeysListString == "" {
+		messageKeysListString = metadata.Parse(getConfigValue(keyMessageKey), metadataProvider)
+	}
+	messageKeysList := strings.Split(messageKeysListString, " ")
+	messageKeysListMap := make(map[string]struct{}, len(messageKeysList))
+	for _, key := range messageKeysList {
+		messageKeysListMap[key] = struct{}{}
+	}
+
 	level := metadata.Parse(getConfigValue(keyLevelKey), metadataProvider)
-	message := metadata.Parse(getConfigValue(keyMessageKey), metadataProvider)
 	messageTag := metadata.Parse(getConfigValue(keyMessageTagKey), metadataProvider)
 
 	resourceType := metadata.Parse(getConfigValue(keyResourceType), metadataProvider)
@@ -24,7 +35,7 @@ func getParseKeys(getConfigValue func(string) string, metadataProvider metadata.
 
 	return &parseKeys{
 		level:        level,
-		message:      message,
+		messageKeys:  messageKeysListMap,
 		messageTag:   messageTag,
 		resourceType: newTemplate(resourceType),
 		resourceID:   newTemplate(resourceID),
