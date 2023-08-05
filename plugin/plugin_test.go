@@ -37,11 +37,30 @@ func TestInit_AllConfig_Success(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "level", plugin.keys.level)
-	assert.Equal(t, "message", plugin.keys.message)
+	assert.Equal(t, map[string]struct{}{
+		"message": {},
+	}, plugin.keys.messageKeys)
 	assert.Equal(t, "message_tag", plugin.keys.messageTag)
 	assert.Equal(t, &template{"resource_type", [][]string{}}, plugin.keys.resourceType)
 	assert.Equal(t, &template{"resource_id", [][]string{}}, plugin.keys.resourceID)
 	assert.Equal(t, &template{"stream_name", [][]string{}}, plugin.keys.streamName)
+}
+
+func TestInit_AllConfigMultipleMessageKeys_Success(t *testing.T) {
+	configMap = map[string]string{
+		"message_keys": "msg message log",
+	}
+	metadataProvider := test.MetadataProvider{}
+	client := &test.Client{}
+
+	plugin, err := New(getConfigValue, metadataProvider, client)
+
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]struct{}{
+		"msg":     {},
+		"message": {},
+		"log":     {},
+	}, plugin.keys.messageKeys)
 }
 
 func TestInit_AllConfigTemplated_Success(t *testing.T) {
@@ -65,10 +84,31 @@ func TestInit_AllConfigTemplated_Success(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "metadata_level", plugin.keys.level)
-	assert.Equal(t, "metadata_message", plugin.keys.message)
+	assert.Equal(t, map[string]struct{}{
+		"metadata_message": {},
+	}, plugin.keys.messageKeys)
 	assert.Equal(t, "message_metadata_tag", plugin.keys.messageTag)
 	assert.Equal(t, &template{"resource_metadata_type", [][]string{}}, plugin.keys.resourceType)
 	assert.Equal(t, &template{"resource_metadata_id", [][]string{}}, plugin.keys.resourceID)
+}
+
+func TestInit_AllConfigTemplatedMultipleMessageKeys_Success(t *testing.T) {
+	configMap = map[string]string{
+		"message_keys": "{{message}}",
+	}
+	metadataProvider := test.MetadataProvider{
+		"message": "metadata_msg metadata_message metadata_log",
+	}
+	client := &test.Client{}
+
+	plugin, err := New(getConfigValue, metadataProvider, client)
+
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]struct{}{
+		"metadata_msg":     {},
+		"metadata_message": {},
+		"metadata_log":     {},
+	}, plugin.keys.messageKeys)
 }
 
 func TestTransform_Success(t *testing.T) {

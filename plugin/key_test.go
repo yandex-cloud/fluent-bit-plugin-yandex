@@ -11,8 +11,10 @@ import (
 
 func TestEntry_Success(t *testing.T) {
 	pk := parseKeys{
-		level:        "level",
-		message:      "message",
+		level: "level",
+		messageKeys: map[string]struct{}{
+			"message": {},
+		},
 		messageTag:   "tag_key",
 		resourceType: newTemplate("resource_type"),
 		resourceID:   newTemplate("resource_id"),
