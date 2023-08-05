@@ -67,9 +67,14 @@ func toTime(raw interface{}) time.Time {
 		return typed.Time
 	case uint64:
 		return time.Unix(int64(typed), 0)
+	case []interface{}:
+		if dt, ok := typed[0].(output.FLBTime); ok {
+			return dt.Time
+		}
+		fmt.Printf("provided time (%+v) invalid: defaulting to now.\n", typed)
+		return time.Now()
 	default:
-		// TODO: prevent noisy logging
-		//fmt.Println("time provided invalid, defaulting to now.")
+		fmt.Printf("provided time (%+v) invalid: defaulting to now.\n", typed)
 		return time.Now()
 	}
 }
