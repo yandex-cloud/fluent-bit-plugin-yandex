@@ -2,7 +2,7 @@ ARG plugin_version=dev
 ARG fluent_bit_version=2.1.7
 ARG golang_version=1.20.6
 
-FROM golang:${golang_version} as builder
+FROM golang:${golang_version}-bullseye as builder
 ARG plugin_version
 ARG fluent_bit_version
 ARG config=github.com/yandex-cloud/fluent-bit-plugin-yandex/v2/config
