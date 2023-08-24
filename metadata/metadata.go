@@ -11,17 +11,16 @@ import (
 	"sync"
 	"time"
 
-	"google.golang.org/protobuf/types/known/structpb"
-
 	"github.com/startdusk/strnaming"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func getMetadataUrl(instanceMetadataAddr string) (*url.URL, error) {
+func getMetadataURL(instanceMetadataAddr string) (*url.URL, error) {
 	const (
-		keyMetadataUrlEnv = "YC_METADATA_URL"
+		keyMetadataURLEnv = "YC_METADATA_URL"
 		urlPath           = "/computeMetadata/v1/"
 	)
-	metadataEndpoint := os.Getenv(keyMetadataUrlEnv)
+	metadataEndpoint := os.Getenv(keyMetadataURLEnv)
 	if len(metadataEndpoint) == 0 {
 		metadataEndpoint = "http://" + instanceMetadataAddr
 	}
@@ -77,7 +76,7 @@ func (mp *cachingProvider) getAllMetadata() (*structpb.Struct, error) {
 		defer mp.mu.RUnlock()
 		return mp.cache, nil
 	}
-	urlMetadata, err := getMetadataUrl(mp.instanceMetadataAddr)
+	urlMetadata, err := getMetadataURL(mp.instanceMetadataAddr)
 	if err != nil {
 		return nil, fmt.Errorf("incorrect metadata URL: %s", err.Error())
 	}

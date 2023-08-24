@@ -20,6 +20,7 @@ func TestGetRecordValue_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
 }
+
 func TestGetRecordValue_WithArray_Success(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": []interface{}{"value"},
@@ -31,6 +32,7 @@ func TestGetRecordValue_WithArray_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", val)
 }
+
 func TestGetRecordValue_JSONValue_Success(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": map[interface{}]interface{}{
@@ -48,6 +50,7 @@ func TestGetRecordValue_JSONValue_Success(t *testing.T) {
 	val = strings.ReplaceAll(val, " ", "") // hack
 	assert.Equal(t, "{\"first\":\"1st\",\"second\":\"2nd\"}", val)
 }
+
 func TestGetRecordValue_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": 123,
@@ -58,6 +61,7 @@ func TestGetRecordValue_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
+
 func TestGetRecordValue_NoSuchKey_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": map[interface{}]interface{}{
@@ -70,6 +74,7 @@ func TestGetRecordValue_NoSuchKey_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
+
 func TestGetRecordValue_WithArray_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": []interface{}{"value"},
@@ -80,6 +85,7 @@ func TestGetRecordValue_WithArray_Fail(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
+
 func TestGetRecordValue_WithArray_OutOfBound_Fail(t *testing.T) {
 	record := map[interface{}]interface{}{
 		"a": []interface{}{"value"},
