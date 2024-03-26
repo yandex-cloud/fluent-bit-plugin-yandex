@@ -5,12 +5,16 @@ FLUENT_BIT_1_8?=1.8.15
 FLUENT_BIT_1_9?=1.9.10
 FLUENT_BIT_2_0?=2.0.11
 FLUENT_BIT_2_1?=2.1.7
+FLUENT_BIT_2_2?=2.2.2
+FLUENT_BIT_3_0?=3.0.0
 
 push-images:
 	docker push $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_8)
 	docker push $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_1_9)
 	docker push $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_2_0)
 	docker push $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_2_1)
+	docker push $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_2_2)
+	docker push $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_3_0)
 
 images: #mod.vendor
 	docker build \
@@ -33,6 +37,16 @@ images: #mod.vendor
 		--build-arg plugin_version=$(PLUGIN_VERSION) \
 		--build-arg fluent_bit_version=$(FLUENT_BIT_2_1) \
 		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_2_1) .
+	docker build \
+		--platform linux/amd64 \
+		--build-arg plugin_version=$(PLUGIN_VERSION) \
+		--build-arg fluent_bit_version=$(FLUENT_BIT_2_2) \
+		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_2_2) .
+	docker build \
+		--platform linux/amd64 \
+		--build-arg plugin_version=$(PLUGIN_VERSION) \
+		--build-arg fluent_bit_version=$(FLUENT_BIT_3_0) \
+		-t $(DOCKER_IMAGE):$(PLUGIN_VERSION)-fluent-bit-$(FLUENT_BIT_3_0) .
 
 precommit: mod.tidy fmt vet lint
 

@@ -1,5 +1,5 @@
 ARG plugin_version=dev
-ARG fluent_bit_version=2.1.7
+ARG fluent_bit_version=3.0.0
 ARG golang_version=1.20.6
 
 FROM golang:${golang_version}-bullseye as builder
