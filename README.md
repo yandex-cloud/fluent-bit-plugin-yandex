@@ -21,6 +21,7 @@ All configuration parameters can be templated via [metadata service](#metadata).
 | `level_key`       | Key of the field, which contains log level, optional. |
 | `default_level`   | (_optional_) Default level for messages, i.e., `INFO`. |
 | `default_payload` | (_optional_) String with default JSON payload for entries (will be merged together with custom entry payload). |
+| `endpoint`        | (_optional_) API endpoint. Сan be set custom endpoint, for example, a [regional one](https://yandex.cloud/ru/docs/overview/concepts/region). Default value: `api.cloud.yandex.net:443`. |
 | `authorization`   | See [Authorization](#authorization) section below. |
 
 ### Metadata
