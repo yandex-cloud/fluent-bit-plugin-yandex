@@ -147,27 +147,35 @@ func makeCredentials(authorization string) (ycsdk.Credentials, error) {
 	const (
 		instanceSaAuth   = "instance-service-account"
 		tokenAuth        = "iam-token"
+		tokenFileAuth    = "iam-token-file:"
 		iamKeyAuthPrefix = "iam-key-file:"
 	)
-	switch auth := strings.TrimSpace(authorization); auth {
-	case instanceSaAuth:
+	auth := strings.TrimSpace(authorization)
+	switch {
+	case auth == instanceSaAuth:
 		return ycsdk.InstanceServiceAccount(), nil
-	case tokenAuth:
+	case auth == tokenAuth:
 		token, ok := os.LookupEnv("YC_TOKEN")
 		if !ok {
 			return nil, errors.New(`environment variable "YC_TOKEN" not set, required for authorization=iam-token`)
 		}
 		return ycsdk.NewIAMTokenCredentials(token), nil
-	default:
-		if !strings.HasPrefix(auth, iamKeyAuthPrefix) {
-			return nil, fmt.Errorf("unsupported authorization parameter %s", auth)
+	case strings.HasPrefix(auth, tokenFileAuth):
+		fileName := strings.TrimSpace(auth[len(tokenFileAuth):])
+		token, err := os.ReadFile(fileName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read service account token file %s", fileName)
 		}
+		return ycsdk.NewIAMTokenCredentials(string(token)), nil
+	case strings.HasPrefix(auth, iamKeyAuthPrefix):
 		fileName := strings.TrimSpace(auth[len(iamKeyAuthPrefix):])
 		key, err := iamkey.ReadFromJSONFile(fileName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read service account key file %s", fileName)
 		}
 		return ycsdk.ServiceAccountKey(key)
+	default:
+		return nil, fmt.Errorf("unsupported authorization parameter %s", auth)
 	}
 }
 
